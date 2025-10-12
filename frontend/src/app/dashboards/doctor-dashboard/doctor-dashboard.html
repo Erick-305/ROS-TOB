@@ -1,0 +1,521 @@
+<div class="doctor-dashboard-container">
+  <!-- Header Profesional -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <div class="logo-section">
+        <div class="logo">🏥</div>
+        <div class="title-section">
+          <h1>Panel Médico</h1>
+          <p class="subtitle">Sistema de Gestión Hospitalaria</p>
+        </div>
+      </div>
+      <div class="user-info">
+        <div class="welcome-text">
+          <span class="greeting">Bienvenido,</span>
+          <span class="user-name">Dr. {{ userName }}</span>
+        </div>
+        <button class="logout-btn" (click)="logout()">
+          <span class="logout-icon">🚪</span>
+          Cerrar Sesión
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard-content">
+    <!-- Sección de estadísticas -->
+    <section class="stats-section">
+      <h2>📊 Resumen del Día</h2>
+      <div class="stats-grid" *ngIf="!isLoadingStats">
+        <div class="stat-card today">
+          <div class="stat-icon">📅</div>
+          <div class="stat-info">
+            <h3>{{ stats.todayAppointments }}</h3>
+            <p>Citas Hoy</p>
+          </div>
+        </div>
+
+        <div class="stat-card patients">
+          <div class="stat-icon">👥</div>
+          <div class="stat-info">
+            <h3>{{ stats.totalPatients }}</h3>
+            <p>Total Pacientes</p>
+          </div>
+        </div>
+
+        <div class="stat-card week">
+          <div class="stat-icon">📊</div>
+          <div class="stat-info">
+            <h3>{{ stats.weekAppointments }}</h3>
+            <p>Citas Esta Semana</p>
+          </div>
+        </div>
+
+        <div class="stat-card completed">
+          <div class="stat-icon">✅</div>
+          <div class="stat-info">
+            <h3>{{ stats.monthCompletedAppointments }}</h3>
+            <p>Completadas Este Mes</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading state -->
+      <div *ngIf="isLoadingStats" class="loading-stats">
+        <div class="spinner"></div>
+        <p>Cargando estadísticas...</p>
+      </div>
+    </section>
+
+    <!-- Sección de citas -->
+    <section class="appointments-section">
+      <div class="section-header">
+        <h2>🩺 Mis Consultas</h2>
+        <div class="tab-buttons">
+          <button 
+            class="tab-btn" 
+            [class.active]="selectedTab === 'today'"
+            (click)="selectedTab = 'today'">
+            Hoy
+          </button>
+          <button 
+            class="tab-btn" 
+            [class.active]="selectedTab === 'week'"
+            (click)="selectedTab = 'week'">
+            Esta Semana
+          </button>
+          <button 
+            class="tab-btn" 
+            [class.active]="selectedTab === 'all'"
+            (click)="selectedTab = 'all'">
+            Todas
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading state -->
+      <div *ngIf="isLoadingAppointments" class="loading-appointments">
+        <div class="spinner"></div>
+        <p>Cargando citas...</p>
+      </div>
+
+      <!-- No appointments -->
+      <div *ngIf="!isLoadingAppointments && filteredAppointments.length === 0" class="no-appointments">
+        <div class="no-appointments-icon">📅</div>
+        <h4>No hay citas programadas</h4>
+        <p>No tienes consultas programadas para el período seleccionado</p>
+      </div>
+
+      <!-- Appointments list -->
+      <div *ngIf="!isLoadingAppointments && filteredAppointments.length > 0" class="appointments-list">
+        <div *ngFor="let appointment of filteredAppointments" class="appointment-card">
+          <div class="appointment-header">
+            <div class="patient-info">
+              <div class="patient-avatar">
+                {{ appointment.patient_name.charAt(0) }}
+              </div>
+              <div class="patient-details">
+                <h4>{{ appointment.patient_name }}</h4>
+                <p class="patient-contact">📧 {{ appointment.patient_email }}</p>
+                <p class="patient-contact" *ngIf="appointment.patient_phone">📞 {{ appointment.patient_phone }}</p>
+              </div>
+            </div>
+            <div class="appointment-status">
+              <span class="status-badge" [class]="getStatusClass(appointment.status)">
+                {{ getStatusText(appointment.status) }}
+              </span>
+            </div>
+          </div>
+          
+          <div class="appointment-details">
+            <div class="detail-item">
+              <span class="detail-icon">📅</span>
+              <div class="detail-content">
+                <span class="detail-label">Fecha</span>
+                <span class="detail-value">{{ formatDate(appointment.appointment_date) }}</span>
+              </div>
+            </div>
+            
+            <div class="detail-item">
+              <span class="detail-icon">🕐</span>
+              <div class="detail-content">
+                <span class="detail-label">Hora</span>
+                <span class="detail-value">{{ appointment.appointment_time }}</span>
+              </div>
+            </div>
+            
+            <div class="detail-item">
+              <span class="detail-icon">⏱️</span>
+              <div class="detail-content">
+                <span class="detail-label">Duración</span>
+                <span class="detail-value">{{ appointment.duration_minutes }} minutos</span>
+              </div>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-icon">🩺</span>
+              <div class="detail-content">
+                <span class="detail-label">Especialidad</span>
+                <span class="detail-value">{{ appointment.specialty_name }}</span>
+              </div>
+            </div>
+            
+            <div class="detail-item full-width">
+              <span class="detail-icon">📝</span>
+              <div class="detail-content">
+                <span class="detail-label">Motivo de la consulta</span>
+                <span class="detail-value">{{ appointment.reason }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="appointment-actions" *ngIf="appointment.status === 'scheduled' || appointment.status === 'confirmed'">
+            <button class="btn-primary btn-sm" (click)="openCompletionModal(appointment.id)">
+              ✅ Marcar como Completada
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Gestión de Pacientes -->
+    <section class="patient-management">
+      <h3>👥 Gestión de Pacientes</h3>
+      <div class="management-grid">
+        <button class="management-btn patients-btn" (click)="showPatientsList = true">
+          <span class="btn-icon">👥</span>
+          <span class="btn-text">Ver Pacientes</span>
+          <span class="btn-description">Lista de pacientes y sus historiales</span>
+        </button>
+        <button class="management-btn medical-record-btn" (click)="showMedicalRecordForm = true">
+          <span class="btn-icon">📋</span>
+          <span class="btn-text">Crear Historial Médico</span>
+          <span class="btn-description">Registrar carta médica del paciente</span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal: Lista de Pacientes -->
+  <div *ngIf="showPatientsList" class="modal-overlay" (click)="closePatientsList()">
+    <div class="modal-content large-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>👥 Mis Pacientes</h3>
+        <button class="close-btn" (click)="closePatientsList()">×</button>
+      </div>
+      
+      <div class="modal-body">
+        <div *ngIf="isLoadingPatients" class="loading-patients">
+          <div class="spinner"></div>
+          <p>Cargando pacientes...</p>
+        </div>
+
+        <div *ngIf="!isLoadingPatients && patients.length === 0" class="no-patients">
+          <div class="no-patients-icon">�</div>
+          <h4>No hay pacientes registrados</h4>
+          <p>Aún no tienes pacientes asignados</p>
+        </div>
+
+        <div *ngIf="!isLoadingPatients && patients.length > 0" class="patients-list">
+          <div *ngFor="let patient of patients" class="patient-item" (click)="viewPatientDetails(patient)">
+            <div class="patient-card-content">
+              <!-- Header del paciente -->
+              <div class="patient-header">
+                <div class="patient-avatar">
+                  {{ patient.patient_name.charAt(0) }}
+                </div>
+                <div class="patient-basic-info">
+                  <h4>{{ patient.patient_name }}</h4>
+                  <span class="patient-role">Paciente</span>
+                </div>
+              </div>
+
+              <!-- Detalles de contacto -->
+              <div class="patient-details">
+                <div class="detail-row">
+                  <div class="detail-icon">
+                    <i class="fa fa-envelope"></i>
+                  </div>
+                  <div class="detail-text">{{ patient.patient_email }}</div>
+                </div>
+                
+                <div class="detail-row" *ngIf="patient.patient_phone">
+                  <div class="detail-icon">
+                    <i class="fa fa-phone"></i>
+                  </div>
+                  <div class="detail-text">{{ patient.patient_phone }}</div>
+                </div>
+                
+                <div class="detail-row" *ngIf="patient.last_appointment">
+                  <div class="detail-icon">
+                    <i class="fa fa-calendar"></i>
+                  </div>
+                  <div class="detail-text">Última cita: {{ formatDate(patient.last_appointment) }}</div>
+                </div>
+              </div>
+
+              <!-- Estadísticas -->
+              <div class="patient-stats">
+                <div class="stat-card">
+                  <span class="stat-number">{{ patient.total_records || 0 }}</span>
+                  <span class="stat-label">Historiales</span>
+                </div>
+                <div class="stat-card">
+                  <span class="stat-number">{{ patient.last_appointment ? 1 : 0 }}</span>
+                  <span class="stat-label">Citas</span>
+                </div>
+              </div>
+
+              <!-- Acciones -->
+              <div class="patient-actions">
+                <button class="action-btn primary" (click)="viewPatientDetails(patient); $event.stopPropagation()">
+                  <i class="fa fa-eye"></i>
+                  Ver Detalles
+                </button>
+                <button class="action-btn secondary" (click)="editPatientRecord(patient); $event.stopPropagation()">
+                  <i class="fa fa-edit"></i>
+                  Editar Historial
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Detalles del Paciente -->
+  <div *ngIf="showPatientDetails" class="modal-overlay" (click)="closePatientDetails()">
+    <div class="modal-content large-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>📋 Historial Médico - {{ selectedPatient?.patient_name }}</h3>
+        <button class="close-btn" (click)="closePatientDetails()">×</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="patient-summary">
+          <div class="patient-avatar large">
+            {{ selectedPatient?.patient_name?.charAt(0) }}
+          </div>
+          <div class="patient-basic-info">
+            <h4>{{ selectedPatient?.patient_name }}</h4>
+            <p>📧 {{ selectedPatient?.patient_email }}</p>
+            <p *ngIf="selectedPatient?.patient_phone">📞 {{ selectedPatient?.patient_phone }}</p>
+          </div>
+        </div>
+
+        <div *ngIf="isLoadingMedicalRecords" class="loading-records">
+          <div class="spinner"></div>
+          <p>Cargando historial médico...</p>
+        </div>
+
+        <div *ngIf="!isLoadingMedicalRecords && selectedPatientRecords.length === 0" class="no-records">
+          <div class="no-records-icon">📋</div>
+          <h4>Sin historial médico</h4>
+          <p>Este paciente aún no tiene registros médicos</p>
+          <button class="btn-primary" (click)="selectedPatient && createMedicalRecordForPatient(selectedPatient)">
+            Crear Primer Historial
+          </button>
+        </div>
+
+        <div *ngIf="!isLoadingMedicalRecords && selectedPatientRecords.length > 0" class="medical-records">
+          <div class="records-header">
+            <h5>📋 Historial Médico ({{ selectedPatientRecords.length }} registro(s))</h5>
+          </div>
+          
+          <div *ngFor="let record of selectedPatientRecords" class="medical-record-card">
+            <div class="record-header">
+              <div class="record-date">
+                <span class="date">{{ formatDate(record.date) }}</span>
+                <span class="time">{{ formatTime(record.date) }}</span>
+              </div>
+              <div class="record-doctor">
+                <i class="fa fa-user-md"></i>
+                Dr. {{ record.doctor_first_name }} {{ record.doctor_last_name }}
+              </div>
+            </div>
+            
+            <div class="record-body">
+              <div class="record-section" *ngIf="record.diagnosis">
+                <div class="section-title">
+                  <i class="fa fa-stethoscope"></i>
+                  Diagnóstico
+                </div>
+                <div class="section-content diagnosis">
+                  {{ record.diagnosis }}
+                </div>
+              </div>
+              
+              <div class="record-section" *ngIf="record.treatment">
+                <div class="section-title">
+                  <i class="fa fa-medkit"></i>
+                  Tratamiento
+                </div>
+                <div class="section-content treatment">
+                  {{ record.treatment }}
+                </div>
+              </div>
+              
+              <div class="record-section" *ngIf="record.prescription">
+                <div class="section-title">
+                  <i class="fa fa-pills"></i>
+                  Prescripción
+                </div>
+                <div class="section-content prescription">
+                  {{ record.prescription }}
+                </div>
+              </div>
+              
+              <div class="record-section" *ngIf="record.notes">
+                <div class="section-title">
+                  <i class="fa fa-sticky-note"></i>
+                  Notas Adicionales
+                </div>
+                <div class="section-content notes">
+                  {{ record.notes }}
+                </div>
+              </div>
+              
+              <div *ngIf="record.follow_up_date" class="follow-up-date">
+                <i class="fa fa-calendar-plus"></i>
+                <strong>Próxima cita de seguimiento:</strong> {{ formatDate(record.follow_up_date) }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Formulario de Historial Médico -->
+  <div *ngIf="showMedicalRecordForm" class="modal-overlay" (click)="closeMedicalRecordForm()">
+    <div class="modal-content large-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>📋 {{ medicalRecordPatient ? 'Nuevo Historial para ' + medicalRecordPatient.patient_name : 'Crear Historial Médico' }}</h3>
+        <button class="close-btn" (click)="closeMedicalRecordForm()">×</button>
+      </div>
+      
+      <div class="modal-body">
+        <form class="medical-record-form">
+          <div class="form-group" *ngIf="!medicalRecordPatient">
+            <label for="patient-select">� Seleccionar Paciente *</label>
+            <select id="patient-select" [(ngModel)]="selectedPatientForRecord" class="form-control" name="selectedPatient" required>
+              <option value="">Seleccione un paciente...</option>
+              <option *ngFor="let patient of patients" [value]="patient.patient_id">
+                {{ patient.patient_name }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group half">
+              <label for="diagnosis">🔍 Diagnóstico *</label>
+              <textarea 
+                id="diagnosis"
+                [(ngModel)]="medicalRecordForm.diagnosis" 
+                class="form-control"
+                name="diagnosis"
+                rows="3"
+                placeholder="Descripción del diagnóstico médico..."
+                required>
+              </textarea>
+            </div>
+            
+            <div class="form-group half">
+              <label for="treatment">💊 Tratamiento *</label>
+              <textarea 
+                id="treatment"
+                [(ngModel)]="medicalRecordForm.treatment" 
+                class="form-control"
+                name="treatment"
+                rows="3"
+                placeholder="Plan de tratamiento recomendado..."
+                required>
+              </textarea>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="prescription">📝 Receta Médica</label>
+            <textarea 
+              id="prescription"
+              [(ngModel)]="medicalRecordForm.prescription" 
+              class="form-control"
+              name="prescription"
+              rows="3"
+              placeholder="Medicamentos prescritos, dosis, frecuencia...">
+            </textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="notes">📌 Notas Adicionales</label>
+            <textarea 
+              id="notes"
+              [(ngModel)]="medicalRecordForm.notes" 
+              class="form-control"
+              name="notes"
+              rows="3"
+              placeholder="Observaciones adicionales, recomendaciones...">
+            </textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="follow-up-date">📅 Fecha de Seguimiento (opcional)</label>
+            <input 
+              type="date"
+              id="follow-up-date"
+              [(ngModel)]="medicalRecordForm.followUpDate" 
+              class="form-control"
+              name="followUpDate">
+          </div>
+        </form>
+      </div>
+      
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="closeMedicalRecordForm()">Cancelar</button>
+        <button 
+          class="btn-primary" 
+          (click)="saveMedicalRecord()"
+          [disabled]="!medicalRecordForm.diagnosis || !medicalRecordForm.treatment || (!selectedPatientForRecord && !medicalRecordPatient)">
+          💾 Guardar Historial Médico
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para completar cita -->
+  <div *ngIf="showCompletionModal" class="modal-overlay" (click)="closeCompletionModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>✅ Completar Consulta</h3>
+        <button class="close-btn" (click)="closeCompletionModal()">×</button>
+      </div>
+      
+      <div class="modal-body">
+        <p>¿Confirmas que la consulta ha sido completada?</p>
+        
+        <div class="form-group">
+          <label for="completion-notes">Notas de la consulta (opcional):</label>
+          <textarea 
+            id="completion-notes"
+            [(ngModel)]="completionNotes" 
+            class="form-control"
+            rows="4"
+            placeholder="Agregar notas sobre la consulta realizada...">
+          </textarea>
+        </div>
+      </div>
+      
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="closeCompletionModal()">Cancelar</button>
+        <button class="btn-primary" (click)="completeAppointment()">Confirmar Completada</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Componente de Notificaciones -->
+<app-notification></app-notification>
+
+<!-- Componente de Notificaciones -->
+<app-notification></app-notification>

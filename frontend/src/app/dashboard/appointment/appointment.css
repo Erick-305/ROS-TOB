@@ -1,0 +1,915 @@
+/* Contenedor principal de agendamiento */
+.appointment-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Header profesional */
+.appointment-header {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  animation: slideDown 0.6s ease-out;
+}
+
+.header-content {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.header-content h1 {
+  color: #2c3e50;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+}
+
+.header-content p {
+  color: #7f8c8d;
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+/* Barra de progreso */
+.progress-bar {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.progress-steps::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #e9ecef;
+  z-index: 1;
+  transform: translateY(-50%);
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  background: white;
+  padding: 0 1rem;
+}
+
+.step-number {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #e9ecef;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.step.active .step-number {
+  background: #3498db;
+  color: white;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+.step.completed .step-number {
+  background: #27ae60;
+  color: white;
+}
+
+.step-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-weight: 500;
+  text-align: center;
+}
+
+.step.active .step-label {
+  color: #3498db;
+  font-weight: 600;
+}
+
+/* Contenido principal */
+.appointment-content {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  animation: slideUp 0.6s ease-out;
+}
+
+.form-step {
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+}
+
+.step-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.step-header h2 {
+  color: #2c3e50;
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.step-header p {
+  color: #7f8c8d;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* Grid de especialidades */
+.specialties-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.specialty-card {
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 15px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.specialty-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border-color: #3498db;
+}
+
+.specialty-card.selected {
+  border-color: #3498db;
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  color: white;
+  box-shadow: 0 10px 25px rgba(52, 152, 219, 0.3);
+}
+
+.specialty-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: white;
+}
+
+.specialty-card.selected .specialty-icon {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+.specialty-info h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: #2c3e50;
+}
+
+.specialty-card.selected .specialty-info h3 {
+  color: white;
+}
+
+.specialty-info p {
+  color: #6c757d;
+  margin: 0 0 1rem 0;
+  line-height: 1.5;
+}
+
+.specialty-card.selected .specialty-info p {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.duration {
+  background: #e9ecef;
+  color: #6c757d;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.specialty-card.selected .duration {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* Grid de doctores */
+.doctors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.doctor-card {
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 15px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.doctor-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border-color: #3498db;
+}
+
+.doctor-card.selected {
+  border-color: #3498db;
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  color: white;
+  box-shadow: 0 10px 25px rgba(52, 152, 219, 0.3);
+}
+
+.doctor-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin: 0 auto 1rem;
+}
+
+.doctor-card.selected .doctor-avatar {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.doctor-info h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: #2c3e50;
+}
+
+.doctor-card.selected .doctor-info h3 {
+  color: white;
+}
+
+.doctor-specialty {
+  color: #6c757d;
+  margin: 0 0 1rem 0;
+  font-style: italic;
+}
+
+.doctor-card.selected .doctor-specialty {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.schedule-badge {
+  background: #e9ecef;
+  color: #6c757d;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.doctor-card.selected .schedule-badge {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* Sección de fecha y hora */
+.datetime-section {
+  display: grid;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.date-picker label {
+  display: block;
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.form-control {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* Slots de tiempo */
+.time-slots label {
+  display: block;
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+}
+
+.time-slot {
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.time-slot:hover {
+  background: #e9ecef;
+  border-color: #3498db;
+}
+
+.time-slot.selected {
+  background: #3498db;
+  border-color: #3498db;
+  color: white;
+  box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+}
+
+.time-slot.disabled {
+  background: #f1f3f4;
+  color: #adb5bd;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.time-slot.disabled:hover {
+  background: #f1f3f4;
+  border-color: #e9ecef;
+}
+
+/* Mensaje de no slots */
+.no-slots {
+  text-align: center;
+  padding: 2rem;
+  background: #fff3cd;
+  border-radius: 10px;
+  border: 2px solid #ffeaa7;
+}
+
+.no-slots-message .icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.no-slots-message p {
+  color: #856404;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.no-slots-message small {
+  color: #6c757d;
+}
+
+/* Resumen de la cita */
+.appointment-summary {
+  background: #f8f9fa;
+  border-radius: 15px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border-left: 4px solid #3498db;
+}
+
+.appointment-summary h3 {
+  color: #2c3e50;
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+}
+
+.summary-grid {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.summary-item:last-child {
+  border-bottom: none;
+}
+
+.summary-item .label {
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.summary-item .value {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+/* Formulario */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.form-group textarea {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: all 0.3s ease;
+}
+
+.form-group textarea:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-group textarea.error {
+  border-color: #e74c3c;
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
+
+.error-message {
+  color: #e74c3c;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+/* Acciones de pasos */
+.step-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 2rem;
+}
+
+.btn {
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+  box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+}
+
+.btn-confirm {
+  background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+  font-size: 1.1rem;
+  padding: 1.2rem 2.5rem;
+}
+
+.arrow {
+  font-weight: normal;
+}
+
+/* Spinner de carga */
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid transparent;
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Alertas */
+.alert {
+  padding: 1.5rem;
+  border-radius: 15px;
+  margin-top: 2rem;
+  font-weight: 500;
+}
+
+.alert-success {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  border: 2px solid #28a745;
+  color: #155724;
+  position: relative;
+  overflow: hidden;
+}
+
+.alert-success.animated {
+  animation: slideInFromTop 0.6s ease-out, pulseGlow 2s infinite;
+}
+
+.alert-error {
+  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+  border: 2px solid #dc3545;
+  color: #721c24;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.error-icon {
+  font-size: 1.5rem;
+}
+
+/* Animaciones de éxito (reutilizadas del registro) */
+.success-animation {
+  text-align: center;
+  padding: 20px;
+}
+
+.success-checkmark {
+  margin: 0 auto 20px;
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.check-icon {
+  width: 80px;
+  height: 80px;
+  position: relative;
+  border-radius: 50%;
+  box-sizing: content-box;
+  border: 4px solid #28a745;
+  background: #28a745;
+  animation: scaleIn 0.8s ease-in-out;
+}
+
+.check-icon::before,
+.check-icon::after {
+  content: '';
+  height: 100px;
+  position: absolute;
+  background: #FFFFFF;
+  transform: rotate(-45deg);
+}
+
+.icon-line {
+  height: 5px;
+  background-color: #FFFFFF;
+  display: block;
+  border-radius: 2px;
+  position: absolute;
+  z-index: 10;
+}
+
+.icon-line.line-tip {
+  top: 46px;
+  left: 14px;
+  width: 25px;
+  transform: rotate(45deg);
+  animation: checkmarkTip 0.75s 0.36s ease-in-out forwards;
+  opacity: 0;
+}
+
+.icon-line.line-long {
+  top: 38px;
+  right: 8px;
+  width: 47px;
+  transform: rotate(-45deg);
+  animation: checkmarkLong 0.75s 0.65s ease-in-out forwards;
+  opacity: 0;
+}
+
+.icon-circle {
+  top: -4px;
+  left: -4px;
+  z-index: 10;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  position: absolute;
+  box-sizing: content-box;
+  border: 4px solid rgba(40, 167, 69, 0.5);
+  animation: pulseCircle 1.5s infinite;
+}
+
+.icon-fix {
+  top: 8px;
+  width: 5px;
+  left: 26px;
+  z-index: 1;
+  height: 85px;
+  position: absolute;
+  transform: rotate(-45deg);
+  background-color: #FFFFFF;
+}
+
+.success-content h3 {
+  color: #155724;
+  font-size: 28px;
+  font-weight: bold;
+  margin: 15px 0;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Animaciones CSS */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromTop {
+  from {
+    transform: translateY(-100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(40, 167, 69, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(40, 167, 69, 0.6), 0 0 30px rgba(40, 167, 69, 0.4);
+  }
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes checkmarkTip {
+  0% {
+    width: 0;
+    left: 1px;
+    top: 19px;
+    opacity: 0;
+  }
+  54% {
+    width: 0;
+    left: 1px;
+    top: 19px;
+    opacity: 1;
+  }
+  70% {
+    width: 50px;
+    left: -8px;
+    top: 37px;
+    opacity: 1;
+  }
+  84% {
+    width: 17px;
+    left: 21px;
+    top: 48px;
+    opacity: 1;
+  }
+  100% {
+    width: 25px;
+    left: 14px;
+    top: 45px;
+    opacity: 1;
+  }
+}
+
+@keyframes checkmarkLong {
+  0% {
+    width: 0;
+    right: 46px;
+    top: 54px;
+    opacity: 0;
+  }
+  65% {
+    width: 0;
+    right: 46px;
+    top: 54px;
+    opacity: 1;
+  }
+  84% {
+    width: 55px;
+    right: 0px;
+    top: 35px;
+    opacity: 1;
+  }
+  100% {
+    width: 47px;
+    right: 8px;
+    top: 38px;
+    opacity: 1;
+  }
+}
+
+@keyframes pulseCircle {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .appointment-container {
+    padding: 1rem;
+  }
+  
+  .appointment-header,
+  .appointment-content {
+    padding: 1.5rem;
+  }
+  
+  .header-content h1 {
+    font-size: 2rem;
+  }
+  
+  .specialties-grid,
+  .doctors-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .step-actions {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .step-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .progress-steps {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .step-label {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-content h1 {
+    font-size: 1.6rem;
+  }
+  
+  .step-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .slots-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Botón de cancelar */
+.btn-cancel {
+  background: #6c757d;
+  color: white;
+  box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.btn-cancel:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+  background: #5a6268;
+}

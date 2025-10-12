@@ -1,0 +1,189 @@
+.dashboard-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.dashboard-header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 1rem 2rem;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.user-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.user-info h1 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.user-details {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-name {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1.1rem;
+}
+
+.user-role {
+  color: #7f8c8d;
+  font-style: italic;
+}
+
+.logout-btn {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+  background: #c0392b;
+  transform: translateY(-1px);
+}
+
+.welcome-card {
+  background: white;
+  margin: 2rem auto;
+  max-width: 800px;
+  border-radius: 15px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border-left: 5px solid;
+  animation: slideIn 0.6s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.welcome-card.admin {
+  border-left-color: #e74c3c;
+}
+
+.welcome-card.doctor {
+  border-left-color: #3498db;
+}
+
+.welcome-card.patient {
+  border-left-color: #2ecc71;
+}
+
+.welcome-card h2 {
+  margin-top: 0;
+  color: #2c3e50;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.welcome-card p {
+  color: #7f8c8d;
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.admin-features, .doctor-features, .patient-features {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 10px;
+  margin-top: 1.5rem;
+}
+
+.admin-features h3, .doctor-features h3, .patient-features h3 {
+  margin-top: 0;
+  color: #2c3e50;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.admin-features ul, .doctor-features ul, .patient-features ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.admin-features li, .doctor-features li, .patient-features li {
+  padding: 0.5rem 0;
+  color: #34495e;
+  font-size: 1rem;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.admin-features li:last-child, .doctor-features li:last-child, .patient-features li:last-child {
+  border-bottom: none;
+}
+
+.debug-info {
+  background: #2c3e50;
+  color: white;
+  padding: 1.5rem;
+  margin: 2rem auto;
+  max-width: 800px;
+  border-radius: 10px;
+  font-family: 'Courier New', monospace;
+}
+
+.debug-info h4 {
+  margin-top: 0;
+  color: #ecf0f1;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.debug-info p {
+  margin: 0.5rem 0;
+  color: #bdc3c7;
+}
+
+.debug-info strong {
+  color: #3498db;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .dashboard-header {
+    padding: 1rem;
+  }
+  
+  .user-info {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .welcome-card {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+  
+  .debug-info {
+    margin: 1rem;
+  }
+}

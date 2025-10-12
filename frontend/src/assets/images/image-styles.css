@@ -1,0 +1,226 @@
+/* 🎨 Estilos para Imágenes del Sistema Hospitalario */
+
+/* === BACKGROUNDS === */
+.login-background {
+  background-image: url('./backgrounds/login-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+.dashboard-background {
+  background-image: url('./backgrounds/dashboard-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.1;
+}
+
+.hospital-header-bg {
+  background-image: url('./backgrounds/hospital-header.jpg');
+  background-size: cover;
+  background-position: center;
+  height: 300px;
+  position: relative;
+}
+
+/* === LOGOS === */
+.hospital-logo {
+  background-image: url('./ui/logo.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 80px;
+  height: 80px;
+  transition: transform 0.3s ease;
+}
+
+.hospital-logo:hover {
+  transform: scale(1.1);
+}
+
+/* Contenedor de imagen de fondo para el header */
+.header-with-background {
+  background-image: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.9) 0%,
+    rgba(118, 75, 162, 0.9) 100%
+  ),
+  url('../images/backgrounds/hospital-hero.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+/* Avatares de usuario */
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.user-avatar:hover {
+  border-color: rgba(255, 255, 255, 0.8);
+  transform: scale(1.05);
+}
+
+/* Imagen del logo */
+.logo-image {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* Imágenes de tarjetas de doctores/pacientes */
+.profile-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #fff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.profile-image:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Fondos decorativos para secciones */
+.section-with-pattern {
+  position: relative;
+  overflow: hidden;
+}
+
+.section-with-pattern::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('../images/decorations/medical-pattern.svg');
+  background-repeat: repeat;
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+/* Iconos médicos personalizados */
+.medical-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: brightness(0) saturate(100%) invert(42%) sepia(93%) saturate(1352%) hue-rotate(217deg) brightness(97%) contrast(86%);
+}
+
+/* Galería de imágenes para testimonios */
+.testimonial-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #667eea;
+  margin-right: 1rem;
+}
+
+/* Imagen de error/placeholder */
+.image-placeholder {
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a0aec0;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Lazy loading effect */
+.image-loading {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading-shimmer 1.5s infinite;
+}
+
+@keyframes loading-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Optimización para pantallas de alta densidad */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .logo-image {
+    background-image: url('../images/icons/hospital-logo@2x.png');
+  }
+}
+
+/* Modo oscuro para imágenes */
+@media (prefers-color-scheme: dark) {
+  .medical-icon {
+    filter: brightness(0) saturate(100%) invert(100%);
+  }
+  
+  .profile-image {
+    border-color: #2d3748;
+  }
+}
+
+/* Efectos de hover para tarjetas con imagen */
+.card-with-image {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-with-image::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.card-with-image:hover::after {
+  transform: translateX(100%);
+}
+
+/* Imagen de fondo para la sección de estadísticas */
+.stats-section-bg {
+  background-image: 
+    linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%),
+    url('../images/backgrounds/medical-equipment-blur.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+/* Responsive images */
+@media (max-width: 768px) {
+  .profile-image {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .testimonial-image {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .user-avatar {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .logo-image {
+    width: 40px;
+    height: 40px;
+  }
+}

@@ -1,0 +1,311 @@
+<!-- Dashboard de Paciente -->
+<div class="patient-dashboard-container">
+  <!-- Header del Dashboard -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="hospital-logo">
+          <div class="logo-icon">🏥</div>
+          <div class="logo-text">
+            <h1>Panel de Paciente</h1>
+            <p>Sistema Hospitalario</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="header-right">
+        <div class="user-info">
+          <span class="welcome-text">Bienvenido, <strong>{{ userName }}</strong></span>
+          <button class="logout-btn" (click)="logout()">
+            Cerrar Sesión
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenido Principal -->
+  <main class="dashboard-main">
+    <div class="main-content">
+      
+      <!-- Portal del Paciente - Título Principal -->
+      <section class="portal-header">
+        <div class="portal-card">
+          <div class="portal-icon">🩺</div>
+          <div class="portal-info">
+            <h2>Portal del Paciente</h2>
+            <p>Gestiona tus citas médicas y mantente al día con tu salud.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sección de Agendar Nueva Cita -->
+      <section class="appointment-form-section">
+        <div class="section-header">
+          <div class="calendar-icon">📅</div>
+          <h3>Agendar Nueva Cita</h3>
+          <p>Programa tu consulta médica de forma rápida y sencilla</p>
+          <p class="specialty-text">Especialidad Médica</p>
+        </div>
+
+        <div class="appointment-form-card">
+          <form class="appointment-form" (ngSubmit)="scheduleAppointment()">
+            <div class="form-grid">
+              <!-- Especialidad -->
+              <div class="form-group">
+                <label for="specialty">Especialidad</label>
+                <select 
+                  id="specialty" 
+                  [(ngModel)]="newAppointment.specialtyId" 
+                  name="specialtyId"
+                  class="form-select"
+                  (change)="onSpecialtyChange()"
+                  [disabled]="isLoadingSpecialties"
+                  required>
+                  <option value="">{{ isLoadingSpecialties ? 'Cargando especialidades...' : 'Seleccionar especialidad' }}</option>
+                  <option *ngFor="let specialty of specialties" [value]="specialty.id">
+                    {{ specialty.name }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Doctor -->
+              <div class="form-group">
+                <label for="doctor">Doctor</label>
+                <select 
+                  id="doctor" 
+                  [(ngModel)]="newAppointment.doctorId" 
+                  name="doctorId"
+                  class="form-select"
+                  [disabled]="isLoadingDoctors || filteredDoctors.length === 0"
+                  required>
+                  <option value="">
+                    {{ isLoadingDoctors ? 'Cargando doctores...' : 
+                       filteredDoctors.length === 0 ? 'No hay doctores disponibles' : 'Seleccionar doctor' }}
+                  </option>
+                  <option *ngFor="let doctor of filteredDoctors" [value]="doctor.id">
+                    Dr. {{ doctor.first_name }} {{ doctor.last_name }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Fecha -->
+              <div class="form-group">
+                <label for="date">Fecha de la Cita</label>
+                <input 
+                  type="date" 
+                  id="date"
+                  [(ngModel)]="newAppointment.date" 
+                  name="date"
+                  class="form-input"
+                  [min]="getTomorrowDate()"
+                  required>
+              </div>
+
+              <!-- Hora -->
+              <div class="form-group">
+                <label for="time">Hora de la Cita</label>
+                <select 
+                  id="time" 
+                  [(ngModel)]="newAppointment.time" 
+                  name="time"
+                  class="form-select"
+                  required>
+                  <option value="">Seleccionar hora</option>
+                  <option value="08:00">08:00 AM</option>
+                  <option value="08:30">08:30 AM</option>
+                  <option value="09:00">09:00 AM</option>
+                  <option value="09:30">09:30 AM</option>
+                  <option value="10:00">10:00 AM</option>
+                  <option value="10:30">10:30 AM</option>
+                  <option value="11:00">11:00 AM</option>
+                  <option value="11:30">11:30 AM</option>
+                  <option value="14:00">02:00 PM</option>
+                  <option value="14:30">02:30 PM</option>
+                  <option value="15:00">03:00 PM</option>
+                  <option value="15:30">03:30 PM</option>
+                  <option value="16:00">04:00 PM</option>
+                  <option value="16:30">04:30 PM</option>
+                  <option value="17:00">05:00 PM</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Motivo de la Consulta -->
+            <div class="form-group full-width">
+              <label for="reason">Motivo de la Consulta</label>
+              <textarea 
+                id="reason"
+                [(ngModel)]="newAppointment.reason" 
+                name="reason"
+                class="form-textarea"
+                placeholder="Describe el motivo de tu consulta..."
+                rows="4"
+                required></textarea>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="form-actions">
+              <button type="button" class="btn-secondary" (click)="clearForm()">
+                Limpiar
+              </button>
+              <button type="submit" class="btn-primary" [disabled]="!isFormValid()">
+                Agendar Cita
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- Sección de Citas Programadas -->
+      <section class="appointments-section" *ngIf="appointments.length > 0">
+        <div class="section-header">
+          <h3>Mis Citas Programadas</h3>
+        </div>
+
+        <!-- Loading State -->
+        <div *ngIf="isLoadingAppointments" class="loading-container">
+          <div class="loading-spinner"></div>
+          <p>Cargando tus citas...</p>
+        </div>
+
+        <!-- Lista de Citas -->
+        <div *ngIf="!isLoadingAppointments && appointments.length > 0" class="appointments-list">
+          <div *ngFor="let appointment of appointments" class="appointment-card">
+            <div class="appointment-info">
+              <div class="specialty-badge" [style.background-color]="appointment.specialty_color">
+                {{ appointment.specialty_name }}
+              </div>
+              <div class="appointment-status">
+                <span class="status-badge" [class]="getStatusClass(appointment.status)">
+                  {{ getStatusText(appointment.status) }}
+                </span>
+              </div>
+            </div>
+
+            <div class="appointment-details">
+              <div class="detail-row">
+                <span class="label">DOCTOR:</span>
+                <span class="value">{{ appointment.doctor_name }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">FECHA:</span>
+                <span class="value">{{ formatDate(appointment.appointment_date) }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">HORA:</span>
+                <span class="value">{{ appointment.appointment_time }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">MOTIVO:</span>
+                <span class="value">{{ appointment.reason }}</span>
+              </div>
+            </div>
+
+            <div class="appointment-actions" *ngIf="appointment.status === 'scheduled' || appointment.status === 'confirmed'">
+              <button class="btn-outline" (click)="openRescheduleModal(appointment.id)">
+                Reprogramar
+              </button>
+              <button class="btn-danger" (click)="cancelAppointment(appointment.id)">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Ejemplo de cita como en la imagen -->
+      <section class="example-appointment">
+        <div class="example-card">
+          <div class="example-header">
+            <span class="example-specialty">🩺 Medicina General</span>
+            <span class="example-status completed">Completada</span>
+          </div>
+          <div class="example-details">
+            <div class="detail-row">
+              <span class="label">DOCTOR:</span>
+              <span class="value">Dr. Carlos Martínez</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">FECHA:</span>
+              <span class="value">Jueves, 16 de octubre de 2025</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">HORA:</span>
+              <span class="value">13:00</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">MOTIVO:</span>
+              <span class="value">pruebas finales</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Modal de Reprogramación -->
+  <div *ngIf="showRescheduleModal" class="modal-overlay" (click)="closeRescheduleModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Reprogramar Cita</h3>
+        <button class="modal-close" (click)="closeRescheduleModal()">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <form (ngSubmit)="confirmReschedule()">
+          <div class="form-group">
+            <label for="reschedule-date">Nueva Fecha</label>
+            <input 
+              type="date" 
+              id="reschedule-date"
+              [(ngModel)]="rescheduleDate" 
+              name="rescheduleDate"
+              class="form-input"
+              [min]="getTomorrowDate()"
+              required>
+          </div>
+          
+          <div class="form-group">
+            <label for="reschedule-time">Nueva Hora</label>
+            <select 
+              id="reschedule-time" 
+              [(ngModel)]="rescheduleTime" 
+              name="rescheduleTime"
+              class="form-select"
+              required>
+              <option value="">Seleccionar hora</option>
+              <option value="08:00">08:00 AM</option>
+              <option value="08:30">08:30 AM</option>
+              <option value="09:00">09:00 AM</option>
+              <option value="09:30">09:30 AM</option>
+              <option value="10:00">10:00 AM</option>
+              <option value="10:30">10:30 AM</option>
+              <option value="11:00">11:00 AM</option>
+              <option value="11:30">11:30 AM</option>
+              <option value="14:00">02:00 PM</option>
+              <option value="14:30">02:30 PM</option>
+              <option value="15:00">03:00 PM</option>
+              <option value="15:30">03:30 PM</option>
+              <option value="16:00">04:00 PM</option>
+              <option value="16:30">04:30 PM</option>
+              <option value="17:00">05:00 PM</option>
+            </select>
+          </div>
+          
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" (click)="closeRescheduleModal()">
+              Cancelar
+            </button>
+            <button type="submit" class="btn-primary" [disabled]="!rescheduleDate || !rescheduleTime">
+              Confirmar Reprogramación
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Componente de Notificaciones -->
+  <app-notification></app-notification>
+</div>

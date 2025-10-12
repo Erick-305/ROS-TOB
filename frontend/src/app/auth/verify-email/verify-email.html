@@ -1,0 +1,73 @@
+<div class="verify-email-container">
+  <div class="verify-card">
+    <!-- Estado de Carga -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <h2>🔐 Verificando tu cuenta...</h2>
+      <p>Por favor espera mientras procesamos tu verificación.</p>
+    </div>
+
+    <!-- Estado de Éxito -->
+    <div *ngIf="isSuccess" class="success-state">
+      <div class="success-icon">✅</div>
+      <h2>¡Cuenta Verificada Exitosamente!</h2>
+      <p class="success-message">{{ message }}</p>
+      
+      <div class="success-details">
+        <h3>🎉 ¡Bienvenido al Sistema Hospitalario!</h3>
+        <p>Tu cuenta ha sido verificada correctamente. Ahora puedes acceder a todos nuestros servicios:</p>
+        <ul class="services-list">
+          <li>🗓️ Agendar citas médicas</li>
+          <li>📋 Consultar tu historial médico</li>
+          <li>💊 Ver recetas y tratamientos</li>
+          <li>📞 Contactar con especialistas</li>
+        </ul>
+        
+        <div class="redirect-info">
+          <p><strong>Te redirigiremos automáticamente a tu dashboard en unos segundos...</strong></p>
+          <div class="countdown-bar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estado de Error -->
+    <div *ngIf="isError" class="error-state">
+      <div class="error-icon">❌</div>
+      <h2>Error en la Verificación</h2>
+      <p class="error-message">{{ message }}</p>
+      
+      <div class="error-details">
+        <h3>¿Qué puedes hacer?</h3>
+        <div class="error-options">
+          <div class="error-option">
+            <h4>🔄 Si el enlace expiró:</h4>
+            <p>Los enlaces de verificación son válidos por 24 horas. Si ha pasado ese tiempo, deberás registrarte nuevamente.</p>
+            <button (click)="goToRegister()" class="btn btn-primary">
+              Registrarme de nuevo
+            </button>
+          </div>
+          
+          <div class="error-option">
+            <h4>🔐 Si ya verificaste tu cuenta:</h4>
+            <p>Es posible que ya hayas verificado tu cuenta anteriormente. Intenta iniciar sesión.</p>
+            <button (click)="goToLogin()" class="btn btn-secondary">
+              Ir al Login
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Información adicional -->
+    <div class="footer-info">
+      <div class="help-section">
+        <h4>¿Necesitas ayuda?</h4>
+        <p>Si sigues teniendo problemas, no dudes en contactarnos:</p>
+        <div class="contact-info">
+          <span>📧 soporte@hospital.com</span>
+          <span>📱 +57 (1) 234-5678</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

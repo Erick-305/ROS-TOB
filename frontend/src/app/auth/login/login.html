@@ -1,0 +1,85 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="logo-container">
+        <i class="fas fa-hospital text-primary"></i>
+        <img src="logo.svg" alt="Hospital Logo" class="hospital-logo-login">
+      </div>
+      <h1><i class="fas fa-heartbeat mr-2"></i>Sistema Hospitalario</h1>
+      <h2><i class="fas fa-user-shield mr-2"></i>Iniciar Sesión</h2>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+      <div class="form-group">
+        <label for="email"><i class="fas fa-envelope mr-2"></i>Email</label>
+        <div class="input-container">
+          <i class="fas fa-at input-icon"></i>
+          <input 
+            type="email" 
+            id="email" 
+            name="email"
+            [(ngModel)]="loginData.email"
+            required
+            email
+            placeholder="tu-email@hospital.com"
+            class="form-control"
+            [class.invalid]="loginForm.submitted && !loginData.email"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password"><i class="fas fa-lock mr-2"></i>Contraseña</label>
+        <div class="input-container">
+          <i class="fas fa-key input-icon"></i>
+          <input 
+            [type]="showPassword ? 'text' : 'password'"
+            id="password" 
+            name="password"
+            [(ngModel)]="loginData.password"
+            required
+            placeholder="••••••••"
+            class="form-control password-input"
+            [class.invalid]="loginForm.submitted && !loginData.password"
+          />
+          <button 
+            type="button" 
+            class="password-toggle" 
+            (click)="togglePassword()"
+            [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+          >
+            <i [class]="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="error-message" *ngIf="error">
+        <i class="fas fa-exclamation-triangle mr-2"></i>{{ error }}
+      </div>
+
+      <button 
+        type="submit" 
+        class="btn-login btn btn-primary"
+        [disabled]="loading"
+      >
+        <span *ngIf="!loading">
+          <i class="fas fa-sign-in-alt mr-2"></i>Iniciar Sesión
+        </span>
+        <span *ngIf="loading">
+          <i class="fas fa-spinner fa-spin mr-2"></i>Iniciando...
+        </span>
+      </button>
+    </form>
+
+    <div class="login-footer">
+      <p>
+        <i class="fas fa-user-plus mr-2"></i>
+        ¿No tienes cuenta? 
+        <a routerLink="/register">
+          <i class="fas fa-arrow-right ml-1"></i>
+          Registrarse
+        </a>
+      </p>
+    </div>
+  </div>
+</div>

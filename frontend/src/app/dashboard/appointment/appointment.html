@@ -1,0 +1,266 @@
+<div class="appointment-container">
+  <!-- Header profesional -->
+  <div class="appointment-header">
+    <div class="header-content">
+      <h1>📅 Agendar Nueva Cita</h1>
+      <p>Programa tu consulta médica en pocos pasos</p>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-steps">
+        <div class="step" [class.active]="step >= 1" [class.completed]="step > 1">
+          <span class="step-number">1</span>
+          <span class="step-label">Especialidad</span>
+        </div>
+        <div class="step" [class.active]="step >= 2" [class.completed]="step > 2">
+          <span class="step-number">2</span>
+          <span class="step-label">Doctor</span>
+        </div>
+        <div class="step" [class.active]="step >= 3" [class.completed]="step > 3">
+          <span class="step-number">3</span>
+          <span class="step-label">Fecha & Hora</span>
+        </div>
+        <div class="step" [class.active]="step >= 4">
+          <span class="step-number">4</span>
+          <span class="step-label">Detalles</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="appointment-content">
+    <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()" class="appointment-form">
+      
+      <!-- Paso 1: Seleccionar Especialidad -->
+      <div class="form-step" *ngIf="step === 1">
+        <div class="step-header">
+          <h2>🏥 Selecciona la Especialidad</h2>
+          <p>Elige el tipo de consulta médica que necesitas</p>
+        </div>
+        
+        <div class="specialties-grid">
+          <div 
+            *ngFor="let specialty of specialties" 
+            class="specialty-card"
+            [class.selected]="appointmentForm.get('specialty_id')?.value == specialty.id"
+            (click)="appointmentForm.patchValue({specialty_id: specialty.id})"
+          >
+            <div class="specialty-icon" [style.background-color]="specialty.color">
+              {{ specialty.icon }}
+            </div>
+            <div class="specialty-info">
+              <h3>{{ specialty.name }}</h3>
+              <p>{{ specialty.description }}</p>
+              <span class="duration">{{ specialty.duration_minutes }} min</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-actions">
+          <button type="button" class="btn btn-cancel" (click)="cancelAppointment()">
+            <span class="arrow">←</span> Cancelar
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-primary" 
+            [disabled]="!appointmentForm.get('specialty_id')?.value"
+            (click)="nextStep()"
+          >
+            Continuar <span class="arrow">→</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Paso 2: Seleccionar Doctor -->
+      <div class="form-step" *ngIf="step === 2">
+        <div class="step-header">
+          <h2>👨‍⚕️ Selecciona tu Doctor</h2>
+          <p>Doctores disponibles para {{ getSelectedSpecialty()?.name }}</p>
+        </div>
+
+        <div class="doctors-grid">
+          <div 
+            *ngFor="let doctor of doctors" 
+            class="doctor-card"
+            [class.selected]="appointmentForm.get('doctor_id')?.value === doctor.id"
+            (click)="appointmentForm.patchValue({doctor_id: doctor.id})"
+          >
+            <div class="doctor-avatar">
+              {{ doctor.first_name.charAt(0) }}{{ doctor.last_name.charAt(0) }}
+            </div>
+            <div class="doctor-info">
+              <h3>Dr. {{ doctor.first_name }} {{ doctor.last_name }}</h3>
+              <p class="doctor-specialty">{{ getSelectedSpecialty()?.name }}</p>
+              <div class="doctor-schedule">
+                <span class="schedule-badge">Lun - Vie: 8:00 AM - 5:00 PM</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-actions">
+          <button type="button" class="btn btn-secondary" (click)="prevStep()">
+            <span class="arrow">←</span> Anterior
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-primary" 
+            [disabled]="!appointmentForm.get('doctor_id')?.value"
+            (click)="nextStep()"
+          >
+            Continuar <span class="arrow">→</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Paso 3: Fecha y Hora -->
+      <div class="form-step" *ngIf="step === 3">
+        <div class="step-header">
+          <h2>📅 Fecha y Hora</h2>
+          <p>Selecciona cuándo quieres tu cita con Dr. {{ getSelectedDoctor()?.first_name }} {{ getSelectedDoctor()?.last_name }}</p>
+        </div>
+
+        <div class="datetime-section">
+          <div class="date-picker">
+            <label for="appointment_date">Fecha de la Cita</label>
+            <input
+              type="date"
+              id="appointment_date"
+              formControlName="appointment_date"
+              [min]="selectedDate"
+              class="form-control"
+            >
+          </div>
+
+          <div class="time-slots" *ngIf="availableSlots.length > 0">
+            <label>Horarios Disponibles</label>
+            <div class="slots-grid">
+              <div 
+                *ngFor="let slot of availableSlots"
+                class="time-slot"
+                [class.selected]="appointmentForm.get('appointment_time')?.value === slot.time"
+                [class.disabled]="!slot.available"
+                (click)="slot.available && appointmentForm.patchValue({appointment_time: slot.time})"
+              >
+                {{ slot.time }}
+              </div>
+            </div>
+          </div>
+
+          <div class="no-slots" *ngIf="appointmentForm.get('appointment_date')?.value && availableSlots.length === 0">
+            <div class="no-slots-message">
+              <span class="icon">⚠️</span>
+              <p>No hay horarios disponibles para esta fecha</p>
+              <small>Por favor selecciona otra fecha</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-actions">
+          <button type="button" class="btn btn-secondary" (click)="prevStep()">
+            <span class="arrow">←</span> Anterior
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-primary" 
+            [disabled]="!appointmentForm.get('appointment_date')?.value || !appointmentForm.get('appointment_time')?.value"
+            (click)="nextStep()"
+          >
+            Continuar <span class="arrow">→</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Paso 4: Detalles y Confirmación -->
+      <div class="form-step" *ngIf="step === 4">
+        <div class="step-header">
+          <h2>📝 Detalles de la Cita</h2>
+          <p>Completa los últimos detalles y confirma tu cita</p>
+        </div>
+
+        <!-- Resumen de la cita -->
+        <div class="appointment-summary">
+          <h3>📋 Resumen de tu Cita</h3>
+          <div class="summary-grid">
+            <div class="summary-item">
+              <span class="label">Especialidad:</span>
+              <span class="value">{{ getSelectedSpecialty()?.name }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">Doctor:</span>
+              <span class="value">Dr. {{ getSelectedDoctor()?.first_name }} {{ getSelectedDoctor()?.last_name }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">Fecha:</span>
+              <span class="value">{{ appointmentForm.get('appointment_date')?.value | date:'fullDate' }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">Hora:</span>
+              <span class="value">{{ appointmentForm.get('appointment_time')?.value }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">Duración:</span>
+              <span class="value">{{ getSelectedSpecialty()?.duration_minutes }} minutos</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Motivo de la visita -->
+        <div class="form-group">
+          <label for="reason_for_visit">Motivo de la Consulta *</label>
+          <textarea
+            id="reason_for_visit"
+            formControlName="reason_for_visit"
+            placeholder="Describe brevemente el motivo de tu consulta..."
+            rows="4"
+            class="form-control"
+            [class.error]="isFieldInvalid('reason_for_visit')"
+          ></textarea>
+          <div class="error-message" *ngIf="isFieldInvalid('reason_for_visit')">
+            {{ getFieldError('reason_for_visit') }}
+          </div>
+        </div>
+
+        <div class="step-actions">
+          <button type="button" class="btn btn-secondary" (click)="prevStep()">
+            <span class="arrow">←</span> Anterior
+          </button>
+          <button 
+            type="submit" 
+            class="btn btn-primary btn-confirm"
+            [disabled]="appointmentForm.invalid || isLoading"
+          >
+            <span *ngIf="!isLoading">✅ Confirmar Cita</span>
+            <span *ngIf="isLoading" class="loading-spinner">
+              <span class="spinner"></span> Agendando...
+            </span>
+          </button>
+        </div>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Mensajes de éxito y error -->
+  <div class="alert alert-success animated" *ngIf="successMessage">
+    <div class="success-animation">
+      <div class="success-checkmark">
+        <div class="check-icon">
+          <span class="icon-line line-tip"></span>
+          <span class="icon-line line-long"></span>
+          <div class="icon-circle"></div>
+          <div class="icon-fix"></div>
+        </div>
+      </div>
+      <div class="success-content">
+        <h3>¡Cita Agendada! 🎉</h3>
+        <p>{{ successMessage }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-error" *ngIf="errorMessage">
+    <span class="error-icon">❌</span>
+    <p>{{ errorMessage }}</p>
+  </div>
+</div>

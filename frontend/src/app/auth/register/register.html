@@ -1,0 +1,218 @@
+<div class="register-container">
+  <div class="register-card">
+    <div class="register-header">
+      <h1>🏥 Registro de Paciente</h1>
+      <p>Crea tu cuenta para acceder a nuestros servicios médicos</p>
+    </div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+      <!-- Información Personal -->
+      <div class="form-section">
+        <h3>📋 Información Personal</h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName">Nombre *</label>
+            <input
+              type="text"
+              id="firstName"
+              formControlName="firstName"
+              placeholder="Tu nombre"
+              [class.error]="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched"
+            >
+            <div class="error-message" *ngIf="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched">
+              El nombre es requerido
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="lastName">Apellido *</label>
+            <input
+              type="text"
+              id="lastName"
+              formControlName="lastName"
+              placeholder="Tu apellido"
+              [class.error]="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched"
+            >
+            <div class="error-message" *ngIf="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched">
+              El apellido es requerido
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Correo Electrónico *</label>
+          <div class="email-input-container">
+            <input
+              type="email"
+              id="email"
+              formControlName="email"
+              placeholder="tu@email.com"
+              [class.error]="(registerForm.get('email')?.invalid && registerForm.get('email')?.touched) || emailExists"
+              [class.success]="registerForm.get('email')?.valid && !emailExists && !emailChecking"
+            >
+            <div class="email-status">
+              <span *ngIf="emailChecking" class="email-checking">🔄</span>
+              <span *ngIf="!emailChecking && emailExists" class="email-exists">❌</span>
+              <span *ngIf="!emailChecking && registerForm.get('email')?.valid && !emailExists" class="email-available">✅</span>
+            </div>
+          </div>
+          <div class="error-message" *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+            <span *ngIf="registerForm.get('email')?.errors?.['required']">El email es requerido</span>
+            <span *ngIf="registerForm.get('email')?.errors?.['email']">Formato de email inválido</span>
+          </div>
+          <div class="error-message" *ngIf="emailExists">
+            Este email ya está registrado. <a routerLink="/login">¿Deseas iniciar sesión?</a>
+          </div>
+          <div class="success-message" *ngIf="!emailChecking && registerForm.get('email')?.valid && !emailExists">
+            ✅ Email disponible
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Teléfono</label>
+          <input
+            type="tel"
+            id="phone"
+            formControlName="phone"
+            placeholder="Ej: +57 300 123 4567"
+          >
+        </div>
+      </div>
+
+      <!-- Información de Seguridad -->
+      <div class="form-section">
+        <h3>🔒 Información de Seguridad</h3>
+        
+        <div class="form-group">
+          <label for="password">Contraseña *</label>
+          <div class="password-input-container">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              id="password"
+              formControlName="password"
+              placeholder="Mínimo 8 caracteres"
+              class="password-input"
+              [class.error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+            >
+            <button 
+              type="button" 
+              class="password-toggle" 
+              (click)="togglePassword()"
+              [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            >
+              <span *ngIf="!showPassword">👁️</span>
+              <span *ngIf="showPassword">🙈</span>
+            </button>
+          </div>
+          <div class="error-message" *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+            <span *ngIf="registerForm.get('password')?.errors?.['required']">La contraseña es requerida</span>
+            <span *ngIf="registerForm.get('password')?.errors?.['minlength']">Mínimo 8 caracteres</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirmar Contraseña *</label>
+          <div class="password-input-container">
+            <input
+              [type]="showConfirmPassword ? 'text' : 'password'"
+              id="confirmPassword"
+              formControlName="confirmPassword"
+              placeholder="Repite tu contraseña"
+              class="password-input"
+              [class.error]="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched"
+            >
+            <button 
+              type="button" 
+              class="password-toggle" 
+              (click)="toggleConfirmPassword()"
+              [attr.aria-label]="showConfirmPassword ? 'Ocultar confirmación' : 'Mostrar confirmación'"
+            >
+              <span *ngIf="!showConfirmPassword">👁️</span>
+              <span *ngIf="showConfirmPassword">🙈</span>
+            </button>
+          </div>
+          <div class="error-message" *ngIf="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
+            <span *ngIf="registerForm.get('confirmPassword')?.errors?.['required']">Debes confirmar la contraseña</span>
+          </div>
+          <div class="error-message" *ngIf="registerForm.errors?.['passwordMismatch'] && registerForm.get('confirmPassword')?.touched">
+            Las contraseñas no coinciden
+          </div>
+        </div>
+      </div>
+
+      <!-- Términos y Condiciones -->
+      <div class="form-section">
+        <div class="checkbox-group">
+          <input
+            type="checkbox"
+            id="acceptTerms"
+            formControlName="acceptTerms"
+            [class.error]="registerForm.get('acceptTerms')?.invalid && registerForm.get('acceptTerms')?.touched"
+          >
+          <label for="acceptTerms">
+            Acepto los <a href="#" class="link">términos y condiciones</a> y la <a href="#" class="link">política de privacidad</a> *
+          </label>
+        </div>
+        <div class="error-message" *ngIf="registerForm.get('acceptTerms')?.invalid && registerForm.get('acceptTerms')?.touched">
+          Debes aceptar los términos y condiciones
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="form-actions">
+        <button 
+          type="submit" 
+          class="btn-register"
+          [disabled]="registerForm.invalid || isLoading"
+        >
+          <span *ngIf="!isLoading">🎯 Registrarme</span>
+          <span *ngIf="isLoading" class="loading-spinner">⏳ Creando cuenta...</span>
+        </button>
+      </div>
+
+      <!-- Mensaje de error general -->
+      <div class="alert alert-error" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <!-- Mensaje de éxito -->
+      <div class="alert alert-success animated" *ngIf="successMessage">
+        <div class="success-animation">
+          <div class="success-checkmark">
+            <div class="check-icon">
+              <span class="icon-line line-tip"></span>
+              <span class="icon-line line-long"></span>
+              <div class="icon-circle"></div>
+              <div class="icon-fix"></div>
+            </div>
+          </div>
+          <div class="success-content">
+            <h3>¡Registro Exitoso! 🎉</h3>
+            <p>{{ successMessage }}</p>
+            <div class="email-instructions">
+              <h4>📧 Próximos pasos:</h4>
+              <ol>
+                <li>Revisa tu bandeja de entrada (y spam)</li>
+                <li>Busca el email del "Sistema Hospitalario"</li>
+                <li>Haz clic en "Verificar mi cuenta"</li>
+                <li>¡Listo para agendar citas!</li>
+              </ol>
+            </div>
+            <div class="redirect-timer">
+              <p>Te redirigiremos al login en unos segundos...</p>
+              <div class="progress-bar">
+                <div class="progress-fill"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <!-- Link para ir al login -->
+    <div class="login-link">
+      <p>¿Ya tienes cuenta? <a routerLink="/login" class="link">Inicia sesión aquí</a></p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,528 @@
+<div class="admin-dashboard-container">
+  <!-- Header Principal -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <div class="logo-section">
+        <div class="logo">
+          <i class="fas fa-hospital text-primary"></i>
+          <img src="logo.svg" alt="Hospital Logo" class="hospital-logo-small">
+        </div>
+        <div class="title-section">
+          <h1><i class="fas fa-chart-line mr-2"></i>Panel de Administrador</h1>
+          <p class="subtitle"><i class="fas fa-heartbeat mr-1"></i>Sistema de Gestión Hospitalaria</p>
+        </div>
+      </div>
+      <div class="user-info">
+        <div class="welcome-text">
+          <span class="greeting"><i class="fas fa-user-shield mr-1"></i>Bienvenido,</span>
+          <span class="user-name">{{ userName }}</span>
+        </div>
+        <button class="logout-btn btn btn-danger" (click)="logout()">
+          <i class="fas fa-sign-out-alt"></i>
+          Cerrar Sesión
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navegación de Secciones -->
+  <nav class="admin-nav">
+    <button 
+      class="nav-btn" 
+      [class.active]="activeView === 'dashboard'"
+      (click)="setActiveView('dashboard')">
+      <i class="fas fa-chart-pie"></i>
+      <span>Dashboard</span>
+    </button>
+    <button 
+      class="nav-btn" 
+      [class.active]="activeView === 'users'"
+      (click)="setActiveView('users')">
+      <i class="fas fa-users"></i>
+      <span>Usuarios</span>
+    </button>
+    <button 
+      class="nav-btn" 
+      [class.active]="activeView === 'doctors'"
+      (click)="setActiveView('doctors')">
+      <i class="fas fa-user-md"></i>
+      <span>Doctores</span>
+    </button>
+    <button 
+      class="nav-btn" 
+      [class.active]="activeView === 'patients'"
+      (click)="setActiveView('patients')">
+      <i class="fas fa-procedures"></i>
+      <span>Pacientes</span>
+    </button>
+    <button 
+      class="nav-btn" 
+      [class.active]="activeView === 'appointments'"
+      (click)="setActiveView('appointments')">
+      <i class="fas fa-calendar-alt"></i>
+      <span>Citas</span>
+    </button>
+  </nav>
+
+  <!-- Vista Dashboard Principal -->
+  <main class="dashboard-content" *ngIf="activeView === 'dashboard'">
+    <div class="stats-overview">
+      <div class="stat-card patients-card">
+        <div class="stat-icon">
+          <i class="fas fa-procedures"></i>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.totalPatients }}</h3>
+          <p>Total Pacientes</p>
+          <div class="stat-change positive">
+            <i class="fas fa-arrow-up"></i> +5%
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card doctors-card">
+        <div class="stat-icon">
+          <i class="fas fa-user-md"></i>
+          <div class="doctor-avatar-small"></div>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.totalDoctors }}</h3>
+          <p>Total Doctores</p>
+          <div class="stat-change positive">
+            <i class="fas fa-arrow-up"></i> +2%
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card appointments-card">
+        <div class="stat-icon">
+          <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.todayAppointments }}</h3>
+          <p>Citas Hoy</p>
+          <div class="stat-change neutral">
+            <i class="fas fa-minus"></i> 0%
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card revenue-card">
+        <div class="stat-icon">
+          <i class="fas fa-dollar-sign"></i>
+        </div>
+        <div class="stat-content">
+          <h3>${{ stats.monthlyRevenue | number:'1.0-0' }}</h3>
+          <p>Ingresos del Mes</p>
+          <div class="stat-change positive">
+            <i class="fas fa-arrow-up"></i> +12%
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card completed-card">
+        <div class="stat-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.completedAppointments }}</h3>
+          <p>Citas Completadas</p>
+          <div class="stat-change positive">
+            <i class="fas fa-arrow-up"></i> +8%
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card scheduled-card">
+        <div class="stat-icon">
+          <i class="fas fa-calendar-plus"></i>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.scheduledAppointments }}</h3>
+          <p>Citas Programadas</p>
+          <div class="stat-change neutral">
+            <i class="fas fa-equals"></i> 0%
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección de Acciones Rápidas -->
+    <div class="quick-actions">
+      <h2><i class="fas fa-bolt text-warning mr-2"></i>Acciones Rápidas</h2>
+      <div class="actions-grid">
+        <button class="action-btn primary" (click)="openCreateUserModal()">
+          <div class="action-icon">
+            <i class="fas fa-user-plus"></i>
+          </div>
+          <div class="action-content">
+            <span class="action-title">Crear Usuario</span>
+            <span class="action-subtitle">Añadir nuevo usuario al sistema</span>
+          </div>
+        </button>
+        <button class="action-btn secondary" (click)="setActiveView('users')">
+          <div class="action-icon">
+            <i class="fas fa-users-cog"></i>
+          </div>
+          <div class="action-content">
+            <span class="action-title">Gestionar Usuarios</span>
+            <span class="action-subtitle">Administrar usuarios existentes</span>
+          </div>
+        </button>
+        <button class="action-btn info" (click)="setActiveView('appointments')">
+          <div class="action-icon">
+            <i class="fas fa-calendar-plus"></i>
+          </div>
+          <div class="action-content">
+            <span class="action-title">Ver Citas</span>
+            <span class="action-subtitle">Revisar citas programadas</span>
+          </div>
+        </button>
+        <button class="action-btn warning" (click)="loadStats()">
+          <div class="action-icon">
+            <i class="fas fa-sync-alt"></i>
+          </div>
+          <div class="action-content">
+            <span class="action-title">Actualizar Datos</span>
+            <span class="action-subtitle">Refrescar estadísticas</span>
+          </div>
+        </button>
+        <button class="action-btn success" (click)="setActiveView('doctors')">
+          <div class="action-icon">
+            <i class="fas fa-stethoscope"></i>
+          </div>
+          <div class="action-content">
+            <span class="action-title">Gestionar Doctores</span>
+            <span class="action-subtitle">Administrar personal médico</span>
+          </div>
+        </button>
+        <button class="action-btn dark" (click)="setActiveView('patients')">
+          <div class="action-icon">
+            <i class="fas fa-procedures"></i>
+          </div>
+          <div class="action-content">
+            <span class="action-title">Ver Pacientes</span>
+            <span class="action-subtitle">Gestionar base de pacientes</span>
+          </div>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Vista de Usuarios -->
+  <main class="dashboard-content" *ngIf="activeView === 'users'">
+    <div class="section-header">
+      <h2>Gestión de Usuarios</h2>
+      <button class="btn-primary" (click)="openCreateUserModal()">
+        <i class="fas fa-user-plus"></i>
+        Crear Usuario
+      </button>
+    </div>
+
+    <div class="users-table" *ngIf="!isLoadingUsers">
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Rol</th>
+            <th>Teléfono</th>
+            <th>Estado</th>
+            <th>Fecha Registro</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of users">
+            <td>{{ user.first_name }} {{ user.last_name }}</td>
+            <td>{{ user.email }}</td>
+            <td>
+              <span class="badge" [class]="getRoleBadgeClass(user.role_id)">
+                {{ user.role_name }}
+              </span>
+            </td>
+            <td>{{ user.phone }}</td>
+            <td>
+              <span class="status-badge" [class.active]="user.is_active" [class.inactive]="!user.is_active">
+                {{ user.is_active ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td>{{ formatDate(user.created_at) }}</td>
+            <td class="actions">
+              <button class="btn-sm btn-edit" (click)="openEditUserModal(user)" title="Editar usuario">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button 
+                class="btn-sm" 
+                [class.btn-activate]="user.is_active"
+                [class.btn-deactivate]="!user.is_active"
+                (click)="toggleUserStatus(user)"
+                [title]="user.is_active ? 'Desactivar usuario' : 'Activar usuario'">
+                <i class="fas" [class.fa-eye]="!user.is_active" [class.fa-eye-slash]="user.is_active"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="isLoadingUsers" class="loading-state">
+      <i class="fas fa-spinner fa-spin"></i>
+      <p>Cargando usuarios...</p>
+    </div>
+  </main>
+
+  <!-- Vista de Doctores -->
+  <main class="dashboard-content" *ngIf="activeView === 'doctors'">
+    <div class="section-header">
+      <h2>Gestión de Doctores</h2>
+      <button class="btn-primary" (click)="openCreateUserModal()">
+        <i class="fas fa-user-md"></i>
+        Agregar Doctor
+      </button>
+    </div>
+
+    <div class="doctors-grid" *ngIf="!isLoadingUsers">
+      <div class="doctor-card" *ngFor="let doctor of doctors">
+        <div class="doctor-avatar">
+          <i class="fas fa-user-md"></i>
+        </div>
+        <div class="doctor-info">
+          <h3>Dr. {{ doctor.first_name }} {{ doctor.last_name }}</h3>
+          <p class="specialty">{{ doctor.specialty_name || 'Sin especialidad' }}</p>
+          <p class="email">{{ doctor.email }}</p>
+          <p class="phone">{{ doctor.phone }}</p>
+          <span class="status-badge" [class.active]="doctor.is_active" [class.inactive]="!doctor.is_active">
+            {{ doctor.is_active ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+        <div class="doctor-actions">
+          <button class="btn-sm btn-edit" (click)="openEditUserModal(doctor)">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button 
+            class="btn-sm" 
+            [class.btn-activate]="!doctor.is_active"
+            [class.btn-deactivate]="doctor.is_active"
+            (click)="toggleUserStatus(doctor)">
+            <i class="fas" [class.fa-eye]="!doctor.is_active" [class.fa-eye-slash]="doctor.is_active"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Vista de Pacientes -->
+  <main class="dashboard-content" *ngIf="activeView === 'patients'">
+    <div class="section-header">
+      <h2>Gestión de Pacientes</h2>
+      <span class="total-count">Total: {{ patients.length }} pacientes</span>
+    </div>
+
+    <div class="patients-grid" *ngIf="!isLoadingUsers">
+      <div class="patient-card" *ngFor="let patient of patients">
+        <div class="patient-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="patient-info">
+          <h3>{{ patient.first_name }} {{ patient.last_name }}</h3>
+          <p class="email">{{ patient.email }}</p>
+          <p class="phone">{{ patient.phone }}</p>
+          <p class="registered">Registrado: {{ formatDate(patient.created_at) }}</p>
+          <span class="status-badge" [class.active]="patient.is_active" [class.inactive]="!patient.is_active">
+            {{ patient.is_active ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+        <div class="patient-actions">
+          <button class="btn-sm btn-edit" (click)="openEditUserModal(patient)">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button 
+            class="btn-sm" 
+            [class.btn-activate]="!patient.is_active"
+            [class.btn-deactivate]="patient.is_active"
+            (click)="toggleUserStatus(patient)">
+            <i class="fas" [class.fa-eye]="!patient.is_active" [class.fa-eye-slash]="patient.is_active"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Vista de Citas -->
+  <main class="dashboard-content" *ngIf="activeView === 'appointments'">
+    <div class="section-header">
+      <h2>Gestión de Citas</h2>
+      <span class="total-count">Total: {{ appointments.length }} citas</span>
+    </div>
+
+    <div class="appointments-table" *ngIf="!isLoadingAppointments">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Hora</th>
+            <th>Paciente</th>
+            <th>Doctor</th>
+            <th>Especialidad</th>
+            <th>Estado</th>
+            <th>Motivo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let appointment of appointments">
+            <td>{{ formatDate(appointment.appointment_date) }}</td>
+            <td>{{ formatTime(appointment.appointment_time) }}</td>
+            <td>{{ appointment.patient_name }}</td>
+            <td>{{ appointment.doctor_name }}</td>
+            <td>{{ appointment.specialty_name }}</td>
+            <td>
+              <span class="badge" [class]="getStatusBadgeClass(appointment.status)">
+                {{ appointment.status }}
+              </span>
+            </td>
+            <td>{{ appointment.reason }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="isLoadingAppointments" class="loading-state">
+      <i class="fas fa-spinner fa-spin"></i>
+      <p>Cargando citas...</p>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Crear Usuario -->
+<div class="modal-overlay" *ngIf="showCreateUserModal" (click)="closeCreateUserModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Crear Nuevo Usuario</h3>
+      <button class="close-btn" (click)="closeCreateUserModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <form>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre *</label>
+            <input 
+              type="text" 
+              [(ngModel)]="newUserForm.firstName"
+              name="firstName"
+              required>
+          </div>
+          <div class="form-group">
+            <label>Apellido *</label>
+            <input 
+              type="text" 
+              [(ngModel)]="newUserForm.lastName"
+              name="lastName"
+              required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Email *</label>
+          <input 
+            type="email" 
+            [(ngModel)]="newUserForm.email"
+            name="email"
+            required>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input 
+              type="tel" 
+              [(ngModel)]="newUserForm.phone"
+              name="phone">
+          </div>
+          <div class="form-group">
+            <label>Rol *</label>
+            <select [(ngModel)]="newUserForm.roleId" name="roleId" required>
+              <option value="1">Administrador</option>
+              <option value="2">Doctor</option>
+              <option value="3">Paciente</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Contraseña *</label>
+          <input 
+            type="password" 
+            [(ngModel)]="newUserForm.password"
+            name="password"
+            required>
+        </div>
+      </form>
+    </div>
+    
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="closeCreateUserModal()">Cancelar</button>
+      <button class="btn-primary" (click)="createUser()">Crear Usuario</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Editar Usuario -->
+<div class="modal-overlay" *ngIf="showEditUserModal" (click)="closeEditUserModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Editar Usuario</h3>
+      <button class="close-btn" (click)="closeEditUserModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="modal-body" *ngIf="selectedUser">
+      <form>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre</label>
+            <input 
+              type="text" 
+              [(ngModel)]="selectedUser.first_name"
+              name="firstName">
+          </div>
+          <div class="form-group">
+            <label>Apellido</label>
+            <input 
+              type="text" 
+              [(ngModel)]="selectedUser.last_name"
+              name="lastName">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Email</label>
+          <input 
+            type="email" 
+            [(ngModel)]="selectedUser.email"
+            name="email">
+        </div>
+        
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input 
+            type="tel" 
+            [(ngModel)]="selectedUser.phone"
+            name="phone">
+        </div>
+      </form>
+    </div>
+    
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="closeEditUserModal()">Cancelar</button>
+      <button class="btn-primary" (click)="updateUser()">Actualizar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Componente de Notificaciones -->
+<app-notification></app-notification>

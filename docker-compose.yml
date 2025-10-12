@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # Base de datos PostgreSQL
+  postgres:
+    image: postgres:17
+    container_name: hospital_postgres
+    environment:
+      POSTGRES_DB: hospital_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - hospital_network
+
+  # Backend API (Node.js)
+  backend:
+    build: ./backend
+    container_name: hospital_backend
+    environment:
+      NODE_ENV: development
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: hospital_db
+      DB_USER: hospital_user
+      DB_PASSWORD: hospital_password
+      JWT_SECRET: your_jwt_secret_key_here
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - hospital_network
+
+  # Frontend Angular
+  frontend:
+    build: ./frontend
+    container_name: hospital_frontend
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - hospital_network
+
+volumes:
+  postgres_data:
+
+networks:
+  hospital_network:
+    driver: bridge
