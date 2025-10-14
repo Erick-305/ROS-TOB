@@ -168,7 +168,12 @@ export class Appointment implements OnInit {
     this.errorMessage = '';
 
     try {
-      const appointmentData = this.appointmentForm.value;
+      const formData = this.appointmentForm.value;
+      const appointmentData = {
+        doctorId: formData.doctor_id,
+        appointmentDate: `${formData.appointment_date}T${formData.appointment_time}:00`,
+        reason: formData.reason_for_visit
+      };
       const headers = this.getAuthHeaders();
       
       const response = await this.http.post<any>(`${this.apiUrl}/appointments/create`, appointmentData, { headers }).toPromise();

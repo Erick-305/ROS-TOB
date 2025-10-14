@@ -96,7 +96,7 @@ CREATE TABLE appointments (
     appointment_date TIMESTAMP NOT NULL,
     duration_minutes INTEGER DEFAULT 30,
     status VARCHAR(20) DEFAULT 'scheduled', -- scheduled, confirmed, in_progress, completed, cancelled
-    reason TEXT,
+    reason_for_visit TEXT,
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

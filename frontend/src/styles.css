@@ -12,13 +12,14 @@
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
               'Helvetica Neue', Arial, sans-serif;
-  line-height: 1.6;
+  line-height: 1.5;
   color: #2c3e50;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+  font-size: 0.95rem;
 }
 
 html, body {
@@ -35,26 +36,26 @@ html, body {
 .btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
+  gap: 0.4rem;
+  padding: 0.6rem 1.2rem;
   border: none;
-  border-radius: 0.75rem;
+  border-radius: 6px;
   text-decoration: none;
   font-weight: 500;
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
 }
 
 .btn i {
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%);
   color: white;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(33, 147, 176, 0.2);
 }
 
 .btn-primary:hover {
