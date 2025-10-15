@@ -3,7 +3,8 @@ require('dotenv').config();
 
 // Configurar el transportador de email
 const transporter = nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE,
+    service: process.e// Función para enviar email de verificación
+const sendVerificationEmail = async (userEmail, userName, verificationCode) => {.EMAIL_SERVICE,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
@@ -22,7 +23,7 @@ const verifyEmailConfig = async () => {
     }
 };
 
-// Plantilla HTML para email de verificación con código
+// Plantilla HTML para email de verificación
 const getVerificationEmailTemplate = (userName, verificationCode) => {
     return `
     <!DOCTYPE html>
@@ -30,7 +31,7 @@ const getVerificationEmailTemplate = (userName, verificationCode) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Código de Verificación - Hospital System</title>
+        <title>Verificación de Cuenta - Hospital System</title>
         <style>
             body {
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -58,6 +59,10 @@ const getVerificationEmailTemplate = (userName, verificationCode) => {
                 font-size: 2rem;
                 font-weight: 700;
             }
+            .header p {
+                margin: 0.5rem 0 0 0;
+                opacity: 0.9;
+            }
             .content {
                 padding: 2rem;
             }
@@ -75,6 +80,7 @@ const getVerificationEmailTemplate = (userName, verificationCode) => {
                 display: inline-block;
                 background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
                 color: white;
+                text-decoration: none;
                 padding: 1.5rem 2rem;
                 border-radius: 10px;
                 font-weight: 700;
@@ -83,7 +89,6 @@ const getVerificationEmailTemplate = (userName, verificationCode) => {
                 margin: 1rem 0;
                 letter-spacing: 0.5rem;
                 text-align: center;
-                border: none;
             }
             .alternative {
                 background: #f8f9fa;
@@ -92,20 +97,37 @@ const getVerificationEmailTemplate = (userName, verificationCode) => {
                 margin: 2rem 0;
                 border-left: 4px solid #3498db;
             }
-            .warning {
-                background: #fff3cd;
-                color: #856404;
-                padding: 1rem;
-                border-radius: 5px;
-                border-left: 4px solid #ffc107;
-                margin-top: 2rem;
+            .alternative p {
+                margin: 0 0 0.5rem 0;
+                color: #2c3e50;
+                font-weight: 600;
+            }
+            .alternative code {
+                background: #e9ecef;
+                padding: 0.2rem 0.5rem;
+                border-radius: 4px;
+                font-family: 'Courier New', monospace;
+                word-break: break-all;
+                display: block;
+                margin-top: 0.5rem;
             }
             .footer {
                 background: #2c3e50;
-                color: white;
+                color: #bdc3c7;
                 padding: 1.5rem;
                 text-align: center;
                 font-size: 0.9rem;
+            }
+            .footer p {
+                margin: 0;
+            }
+            .warning {
+                background: #fff3cd;
+                border: 1px solid #ffeaa7;
+                color: #856404;
+                padding: 1rem;
+                border-radius: 8px;
+                margin: 1rem 0;
             }
         </style>
     </head>
@@ -140,12 +162,21 @@ const getVerificationEmailTemplate = (userName, verificationCode) => {
                 </div>
                 
                 <div class="warning">
-                    <strong>⚠️ Importante:</strong> Este código de verificación expirará en 24 horas. Si no verificas tu cuenta en este tiempo, deberás registrarte nuevamente.
+                    <strong>⚠️ Importante:</strong> Este enlace de verificación expirará en 24 horas. Si no verificas tu cuenta dentro de este tiempo, deberás registrarte nuevamente.
+                </div>
+                
+                <div class="message">
+                    Una vez verificada tu cuenta, podrás:
+                    <ul style="color: #2c3e50; margin: 1rem 0;">
+                        <li>🗓️ Agendar citas médicas</li>
+                        <li>📋 Consultar tu historial médico</li>
+                        <li>💊 Ver tus recetas y tratamientos</li>
+                        <li>📞 Contactar con nuestros especialistas</li>
+                    </ul>
                 </div>
             </div>
             
             <div class="footer">
-                <p>Si no solicitaste esta cuenta, puedes ignorar este correo de forma segura.</p>
                 <p>Este correo fue enviado automáticamente. Por favor no respondas a esta dirección.</p>
                 <p>© 2025 Sistema Hospitalario. Todos los derechos reservados.</p>
             </div>
@@ -156,39 +187,42 @@ const getVerificationEmailTemplate = (userName, verificationCode) => {
 };
 
 // Función para enviar email de verificación
-const sendVerificationEmail = async (userEmail, userName, verificationCode) => {
+const sendVerificationEmail = async (userEmail, userName, verificationToken) => {
     try {
+        const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+        
         const mailOptions = {
             from: {
                 name: 'Sistema Hospitalario',
                 address: process.env.EMAIL_FROM
             },
             to: userEmail,
-            subject: '🏥 Código de Verificación - Sistema Hospitalario',
-            html: getVerificationEmailTemplate(userName, verificationCode),
+            subject: '🏥 Verificación de Cuenta - Sistema Hospitalario',
+            html: getVerificationEmailTemplate(userName, verificationUrl),
             text: `
 Hola ${userName},
 
 ¡Gracias por registrarte en nuestro Sistema Hospitalario!
 
-Tu código de verificación es: ${verificationCode}
+Para completar tu registro, por favor verifica tu cuenta haciendo clic en el siguiente enlace:
+${verificationUrl}
 
-Ve a la página de verificación e ingresa este código junto con tu email para activar tu cuenta.
+Este enlace expirará en 24 horas.
 
-Este código expirará en 24 horas.
+Una vez verificada tu cuenta, podrás agendar citas médicas y acceder a todos nuestros servicios.
 
-¡Gracias por confiar en nosotros!
-
-Sistema Hospitalario
+Saludos,
+Equipo del Sistema Hospitalario
             `
         };
 
-        await transporter.sendMail(mailOptions);
-        console.log('✅ Email de verificación enviado:', mailOptions.messageId);
-        return true;
+        const info = await transporter.sendMail(mailOptions);
+        console.log('✅ Email de verificación enviado:', info.messageId);
+        return { success: true, messageId: info.messageId };
+        
     } catch (error) {
         console.error('❌ Error enviando email de verificación:', error);
-        return false;
+        return { success: false, error: error.message };
     }
 };
 

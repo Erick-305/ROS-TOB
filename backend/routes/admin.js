@@ -274,7 +274,7 @@ router.get('/appointments', authenticateToken, requireAdmin, async (req, res) =>
                 a.appointment_date,
                 a.duration_minutes,
                 a.status,
-                a.reason,
+                a.reason_for_visit as reason,
                 a.notes,
                 a.created_at,
                 pu.first_name as patient_first_name,
@@ -283,6 +283,8 @@ router.get('/appointments', authenticateToken, requireAdmin, async (req, res) =>
                 du.first_name as doctor_first_name,
                 du.last_name as doctor_last_name,
                 du.email as doctor_email,
+                CONCAT('Dr. ', du.first_name, ' ', du.last_name) as doctor_name,
+                CONCAT(pu.first_name, ' ', pu.last_name) as patient_name,
                 s.name as specialty_name
             FROM appointments a
             JOIN patients p ON a.patient_id = p.id

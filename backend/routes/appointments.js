@@ -1,5 +1,5 @@
 const express = require('express');
-const postgres = require('postgres');
+const pool = require('../config/pool');
 const jwt = require('jsonwebtoken');
 
 const router = express.Router();
@@ -13,7 +13,7 @@ const authenticateToken = (req, res, next) => {
         return res.status(401).json({ message: 'Token de acceso requerido' });
     }
 
-    jwt.verify(token, process.env.JWT_SECRET || 'your_secret_key', (err, user) => {
+    jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_key_here', (err, user) => {
         if (err) {
             return res.status(403).json({ message: 'Token inválido' });
         }
@@ -22,25 +22,13 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-// Configurar conexión directa con postgres
-const sql = postgres({
-    host: process.env.DB_HOST,
-    port: parseInt(process.env.DB_PORT),
-    database: process.env.DB_NAME,
-    username: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-});
-
 // GET /api/appointments/specialties - Obtener todas las especialidades
 router.get('/specialties', async (req, res) => {
     try {
-        const specialties = await sql`
-            SELECT id, name, description, icon, color, duration_minutes
-            FROM specialties 
-            ORDER BY name
-        `;
+        const query = 'SELECT id, name, description FROM specialties ORDER BY name';
+        const result = await pool.query(query);
         
-        res.json(specialties);
+        res.json(result.rows);
     } catch (error) {
         console.error('Error fetching specialties:', error);
         res.status(500).json({ message: 'Error al obtener especialidades' });
@@ -50,15 +38,16 @@ router.get('/specialties', async (req, res) => {
 // GET /api/appointments/doctors - Obtener todos los doctores
 router.get('/doctors', async (req, res) => {
     try {
-        const doctors = await sql`
+        const query = `
             SELECT DISTINCT u.id, u.email, u.first_name, u.last_name, d.specialty_id
             FROM users u
             JOIN doctors d ON u.id = d.id
             WHERE u.role_id = 2 
             ORDER BY u.first_name, u.last_name
         `;
+        const result = await pool.query(query);
         
-        res.json(doctors);
+        res.json(result.rows);
     } catch (error) {
         console.error('Error fetching doctors:', error);
         res.status(500).json({ message: 'Error al obtener doctores' });
@@ -70,459 +59,285 @@ router.get('/doctors/:specialtyId', async (req, res) => {
     try {
         const { specialtyId } = req.params;
         
-        const doctors = await sql`
+        const query = `
             SELECT DISTINCT u.id, u.email, u.first_name, u.last_name
             FROM users u
             JOIN doctors d ON u.id = d.id
             WHERE u.role_id = 2 
-            AND d.specialty_id = ${specialtyId}
+            AND d.specialty_id = $1
             ORDER BY u.first_name, u.last_name
         `;
+        const result = await pool.query(query, [specialtyId]);
         
-        res.json(doctors);
+        res.json(result.rows);
     } catch (error) {
         console.error('Error fetching doctors:', error);
         res.status(500).json({ message: 'Error al obtener doctores' });
     }
 });
 
-// GET /api/appointments/availability/:doctorId/:date - Obtener horarios disponibles
-router.get('/availability/:doctorId/:date', async (req, res) => {
-    try {
-        const { doctorId, date } = req.params;
-        
-        // Obtener el día de la semana (0 = Domingo, 1 = Lunes, etc.)
-        const appointmentDate = new Date(date);
-        let dayOfWeek = appointmentDate.getDay();
-        
-        // Convertir de formato JavaScript (0=Domingo) a formato DB (1=Lunes)
-        // JavaScript: 0=Dom, 1=Lun, 2=Mar, 3=Mie, 4=Jue, 5=Vie, 6=Sab
-        // DB: 1=Lun, 2=Mar, 3=Mie, 4=Jue, 5=Vie
-        if (dayOfWeek === 0 || dayOfWeek === 6) {
-            // Domingo (0) o Sábado (6) - no hay atención
-            return res.json([]);
-        }
-        
-        // Convertir a formato de DB: 1=Lunes, 2=Martes, etc.
-        const dbDayOfWeek = dayOfWeek; // 1=Lun, 2=Mar, 3=Mie, 4=Jue, 5=Vie
-        
-        // Obtener horarios del doctor para ese día
-        const schedules = await sql`
-            SELECT start_time, end_time
-            FROM doctor_schedules
-            WHERE doctor_id = ${doctorId}
-            AND day_of_week = ${dbDayOfWeek}
-        `;
-        
-        if (schedules.length === 0) {
-            return res.json([]);
-        }
-        
-        // Obtener citas ya agendadas para ese día
-        const existingAppointments = await sql`
-            SELECT appointment_date
-            FROM appointments
-            WHERE doctor_id = ${doctorId}
-            AND DATE(appointment_date) = ${date}
-            AND status IN ('scheduled', 'confirmed')
-        `;
-        
-        const bookedTimes = existingAppointments.map(apt => {
-            const appointmentDate = new Date(apt.appointment_date);
-            return appointmentDate.toTimeString().slice(0, 5); // HH:MM
-        });
-        
-        // Generar slots de tiempo disponibles
-        const timeSlots = [];
-        const schedule = schedules[0];
-        
-        const startTime = new Date(`2000-01-01T${schedule.start_time}`);
-        const endTime = new Date(`2000-01-01T${schedule.end_time}`);
-        
-        // Generar slots cada 30 minutos
-        const current = new Date(startTime);
-        while (current < endTime) {
-            const timeString = current.toTimeString().slice(0, 5);
-            const isBooked = bookedTimes.some(bookedTime => 
-                bookedTime === timeString
-            );
-            
-            // No permitir citas en el pasado si es hoy
-            const now = new Date();
-            const isToday = appointmentDate.toDateString() === now.toDateString();
-            const isPast = isToday && current <= now;
-            
-            timeSlots.push({
-                time: timeString,
-                available: !isBooked && !isPast
-            });
-            
-            current.setMinutes(current.getMinutes() + 30);
-        }
-        
-        res.json(timeSlots);
-    } catch (error) {
-        console.error('Error fetching availability:', error);
-        res.status(500).json({ message: 'Error al obtener disponibilidad' });
-    }
-});
-
-// POST /api/appointments/create - Crear nueva cita
+// POST /api/appointments/create - Crear una nueva cita
 router.post('/create', authenticateToken, async (req, res) => {
     try {
-        const { 
-            specialty_id, 
-            doctor_id, 
-            appointment_date, 
-            appointment_time, 
-            reason_for_visit 
-        } = req.body;
+        const { doctorId, appointmentDate, reason } = req.body;
+        const patientId = req.user.userId;
 
-        // Log de depuración
-        console.log('Request body:', req.body);
-        console.log('User from token:', req.user);
+        console.log('🏥 === CREAR CITA - DATOS RECIBIDOS ===');
+        console.log('📋 Request body:', { doctorId, appointmentDate, reason });
+        console.log('👤 Usuario autenticado:', { userId: req.user.userId, roleId: req.user.roleId });
+        console.log('🆔 PatientId a usar:', patientId);
 
         // Validaciones básicas
-        if (!specialty_id || !doctor_id || !appointment_date || !appointment_time || !reason_for_visit) {
+        if (!doctorId || !appointmentDate) {
+            console.log('❌ Validación fallida - Datos faltantes:', { doctorId, appointmentDate });
             return res.status(400).json({
-                message: 'Todos los campos son requeridos'
+                message: 'Doctor ID y fecha de cita son requeridos'
             });
         }
 
-        // Obtener patient_id del usuario autenticado
-        const userId = req.user?.userId; // Cambiar de id a userId
-        
-        if (!userId) {
-            return res.status(400).json({
-                message: 'ID de usuario no encontrado en el token'
-            });
-        }
-        
-        // Verificar que el usuario existe y tiene rol de paciente
-        const patientResult = await sql`
-            SELECT id FROM users 
-            WHERE id = ${userId} AND role_id = 3
-            LIMIT 1
-        `;
-        
-        if (patientResult.length === 0) {
-            return res.status(400).json({
-                message: 'Usuario no encontrado o no es un paciente'
-            });
-        }
-        
-        const patient_id = patientResult[0].id;
-
-        // Combinar fecha y hora en un solo timestamp
-        const appointmentDateTime = new Date(`${appointment_date}T${appointment_time}:00`);
-
-        // Verificar que el horario aún esté disponible
-        const existingAppointment = await sql`
-            SELECT id FROM appointments
-            WHERE doctor_id = ${doctor_id}
-            AND appointment_date = ${appointmentDateTime}
-            AND status IN ('scheduled', 'confirmed')
-        `;
-
-        if (existingAppointment.length > 0) {
-            return res.status(400).json({
-                message: 'Este horario ya no está disponible'
+        // Verificar que el usuario es un paciente
+        if (req.user.roleId !== 3) {
+            console.log('❌ Usuario no es paciente - roleId:', req.user.roleId);
+            return res.status(403).json({
+                message: 'Solo los pacientes pueden agendar citas'
             });
         }
 
-        // Obtener duración de la especialidad
-        const specialty = await sql`
-            SELECT duration_minutes FROM specialties WHERE id = ${specialty_id}
-        `;
-        
-        const duration_minutes = specialty[0]?.duration_minutes || 30;
+        console.log('✅ Validaciones pasadas, creando cita...');
 
         // Crear la cita
-        const newAppointment = await sql`
-            INSERT INTO appointments (
-                patient_id, doctor_id, 
-                appointment_date, duration_minutes,
-                reason, status
-            )
-            VALUES (
-                ${patient_id}, ${doctor_id},
-                ${appointmentDateTime}, ${duration_minutes},
-                ${reason_for_visit}, 'scheduled'
-            )
-            RETURNING id, appointment_date, status, created_at
+        const insertQuery = `
+            INSERT INTO appointments (patient_id, doctor_id, appointment_date, reason_for_visit, status)
+            VALUES ($1, $2, $3, $4, 'scheduled')
+            RETURNING id, patient_id, doctor_id, appointment_date, reason_for_visit as reason, status, created_at
         `;
+        
+        console.log('📝 SQL Query:', insertQuery);
+        console.log('📊 SQL Params:', [patientId, doctorId, appointmentDate, reason || null]);
+        
+        const result = await pool.query(insertQuery, [patientId, doctorId, appointmentDate, reason || null]);
+        const newAppointment = result.rows[0];
 
-        // Obtener información completa de la cita creada
-        const appointmentDetails = await sql`
-            SELECT 
-                a.id, a.appointment_date, a.duration_minutes,
-                a.reason, a.status, a.created_at,
-                u.first_name as doctor_first_name, u.last_name as doctor_last_name,
-                s.name as specialty_name, s.icon as specialty_icon
-            FROM appointments a
-            JOIN users u ON a.doctor_id = u.id
-            JOIN doctors d ON u.id = d.id
-            JOIN specialties s ON d.specialty_id = s.id
-            WHERE a.id = ${newAppointment[0].id}
-        `;
+        console.log('✅ Cita creada exitosamente:', newAppointment);
 
         res.status(201).json({
             message: 'Cita agendada exitosamente',
-            appointment: appointmentDetails[0]
+            appointment: newAppointment
         });
 
     } catch (error) {
-        console.error('Error creating appointment:', error);
-        res.status(500).json({ 
-            message: 'Error al crear la cita',
-            error: error.message 
+        console.log('❌ === ERROR AL CREAR CITA ===');
+        console.error('📋 Error completo:', error);
+        console.error('🔍 Error message:', error.message);
+        console.error('📊 Error code:', error.code);
+        console.error('📝 Error detail:', error.detail);
+        res.status(500).json({
+            message: 'Error interno del servidor',
+            error: error.message
         });
     }
 });
 
-// GET /api/appointments/my-appointments/:patientId - Obtener citas del paciente
-router.get('/my-appointments/:patientId', async (req, res) => {
+// GET /api/appointments/my-appointments - Obtener citas del paciente autenticado
+router.get('/my-appointments', authenticateToken, async (req, res) => {
     try {
-        const { patientId } = req.params;
+        const patientId = req.user.userId;
         
-        const appointments = await sql`
+        console.log('📋 === CARGAR CITAS PACIENTE ===');
+        console.log('👤 Usuario autenticado:', { userId: req.user.userId, roleId: req.user.roleId });
+        console.log('🆔 PatientId a buscar:', patientId);
+        
+        // Verificar que el usuario es un paciente
+        if (req.user.roleId !== 3) {
+            console.log('❌ Usuario no es paciente - roleId:', req.user.roleId);
+            return res.status(403).json({
+                message: 'Solo los pacientes pueden ver sus citas'
+            });
+        }
+
+        console.log('✅ Usuario es paciente, ejecutando consulta...');
+
+        const query = `
             SELECT 
-                a.id, a.appointment_date, a.appointment_time, a.duration_minutes,
-                a.reason_for_visit, a.status, a.created_at,
+                a.id, a.appointment_date, a.reason_for_visit as reason, a.status, a.created_at,
                 u.first_name as doctor_first_name, u.last_name as doctor_last_name,
-                s.name as specialty_name, s.icon as specialty_icon, s.color as specialty_color
+                CONCAT('Dr. ', u.first_name, ' ', u.last_name) as doctor_name,
+                s.name as specialty_name
             FROM appointments a
             JOIN users u ON a.doctor_id = u.id
-            JOIN specialties s ON a.specialty_id = s.id
-            WHERE a.patient_id = ${patientId}
-            ORDER BY a.appointment_date DESC, a.appointment_time DESC
+            LEFT JOIN doctors d ON u.id = d.id
+            LEFT JOIN specialties s ON d.specialty_id = s.id
+            WHERE a.patient_id = $1
+            ORDER BY a.appointment_date DESC
         `;
         
-        res.json(appointments);
+        console.log('📝 SQL Query:', query);
+        console.log('📊 SQL Params:', [patientId]);
+        
+        const result = await pool.query(query, [patientId]);
+        
+        console.log('✅ Citas encontradas:', result.rows.length);
+        console.log('📋 Citas:', result.rows);
+        
+        res.json(result.rows);
     } catch (error) {
-        console.error('Error fetching patient appointments:', error);
-        res.status(500).json({ message: 'Error al obtener citas' });
-    }
-});
-
-// PUT /api/appointments/:appointmentId/cancel - Cancelar cita
-router.put('/:appointmentId/cancel', authenticateToken, async (req, res) => {
-    try {
-        const { appointmentId } = req.params;
-        const userId = req.user?.userId;
-        
-        // Verificar que la cita pertenece al usuario autenticado
-        const existingAppointment = await sql`
-            SELECT id FROM appointments
-            WHERE id = ${appointmentId}
-            AND patient_id = ${userId}
-            AND status = 'scheduled'
-        `;
-
-        if (existingAppointment.length === 0) {
-            return res.status(404).json({
-                message: 'Cita no encontrada o no se puede cancelar'
-            });
-        }
-
-        const updatedAppointment = await sql`
-            UPDATE appointments 
-            SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP
-            WHERE id = ${appointmentId}
-            RETURNING id, status, updated_at
-        `;
-
-        res.json({
-            message: 'Cita cancelada exitosamente',
-            appointment: updatedAppointment[0]
+        console.log('❌ === ERROR AL CARGAR CITAS ===');
+        console.error('📋 Error completo:', error);
+        console.error('🔍 Error message:', error.message);
+        console.error('📊 Error code:', error.code);
+        res.status(500).json({
+            message: 'Error interno del servidor',
+            error: error.message
         });
-    } catch (error) {
-        console.error('Error cancelling appointment:', error);
-        res.status(500).json({ message: 'Error al cancelar la cita' });
     }
 });
 
-// PUT /api/appointments/:appointmentId/reschedule - Reprogramar cita
-router.put('/:appointmentId/reschedule', authenticateToken, async (req, res) => {
+// PUT /api/appointments/:id/reschedule - Reprogramar una cita
+router.put('/:id/reschedule', authenticateToken, async (req, res) => {
     try {
-        const { appointmentId } = req.params;
-        const { appointment_date, appointment_time } = req.body;
-        const userId = req.user?.userId;
+        const appointmentId = req.params.id;
+        const { appointmentDate } = req.body;
+        const patientId = req.user.userId;
 
-        if (!appointment_date || !appointment_time) {
+        console.log('🔄 === REPROGRAMAR CITA ===');
+        console.log('📋 AppointmentId:', appointmentId);
+        console.log('👤 PatientId:', patientId);
+        console.log('📅 Nueva fecha:', appointmentDate);
+
+        // Validaciones básicas
+        if (!appointmentDate) {
+            console.log('❌ Fecha de cita requerida');
             return res.status(400).json({
-                message: 'Fecha y hora son requeridas para reprogramar'
+                message: 'Nueva fecha de cita es requerida'
             });
         }
 
-        // Combinar fecha y hora en un solo timestamp
-        const appointmentDateTime = new Date(`${appointment_date}T${appointment_time}:00`);
+        // Verificar que el usuario es un paciente
+        if (req.user.roleId !== 3) {
+            console.log('❌ Usuario no es paciente');
+            return res.status(403).json({
+                message: 'Solo los pacientes pueden reprogramar citas'
+            });
+        }
 
-        // Verificar que la cita pertenece al usuario autenticado
-        const existingAppointment = await sql`
-            SELECT id, doctor_id FROM appointments
-            WHERE id = ${appointmentId}
-            AND patient_id = ${userId}
-            AND status = 'scheduled'
+        // Verificar que la cita existe y pertenece al paciente
+        const checkQuery = `
+            SELECT id FROM appointments 
+            WHERE id = $1 AND patient_id = $2
         `;
+        const checkResult = await pool.query(checkQuery, [appointmentId, patientId]);
 
-        if (existingAppointment.length === 0) {
+        if (checkResult.rows.length === 0) {
+            console.log('❌ Cita no encontrada o no pertenece al paciente');
             return res.status(404).json({
-                message: 'Cita no encontrada o no se puede reprogramar'
-            });
-        }
-
-        const doctorId = existingAppointment[0].doctor_id;
-
-        // Verificar que el nuevo horario esté disponible
-        const conflictingAppointment = await sql`
-            SELECT id FROM appointments
-            WHERE doctor_id = ${doctorId}
-            AND appointment_date = ${appointmentDateTime}
-            AND status IN ('scheduled', 'confirmed')
-            AND id != ${appointmentId}
-        `;
-
-        if (conflictingAppointment.length > 0) {
-            return res.status(400).json({
-                message: 'El horario seleccionado ya no está disponible'
+                message: 'Cita no encontrada o no tienes permisos para modificarla'
             });
         }
 
         // Actualizar la cita
-        const updatedAppointment = await sql`
+        const updateQuery = `
             UPDATE appointments 
-            SET appointment_date = ${appointmentDateTime}, updated_at = CURRENT_TIMESTAMP
-            WHERE id = ${appointmentId}
+            SET appointment_date = $1, updated_at = CURRENT_TIMESTAMP
+            WHERE id = $2 AND patient_id = $3
             RETURNING id, appointment_date, status, updated_at
         `;
+        
+        console.log('📝 SQL Query:', updateQuery);
+        console.log('📊 SQL Params:', [appointmentDate, appointmentId, patientId]);
 
-        // Formatear respuesta
-        const appointmentDate = new Date(updatedAppointment[0].appointment_date);
-        const responseData = {
-            ...updatedAppointment[0],
-            appointment_date: appointmentDate.toISOString().split('T')[0],
-            appointment_time: appointmentDate.toTimeString().slice(0, 5)
-        };
+        const result = await pool.query(updateQuery, [appointmentDate, appointmentId, patientId]);
+        const updatedAppointment = result.rows[0];
+
+        console.log('✅ Cita reprogramada:', updatedAppointment);
 
         res.json({
             message: 'Cita reprogramada exitosamente',
-            appointment: responseData
+            appointment: updatedAppointment
         });
+
     } catch (error) {
-        console.error('Error rescheduling appointment:', error);
-        res.status(500).json({ 
-            message: 'Error al reprogramar la cita',
-            error: error.message 
+        console.log('❌ === ERROR AL REPROGRAMAR CITA ===');
+        console.error('📋 Error completo:', error);
+        console.error('🔍 Error message:', error.message);
+        console.error('📊 Error code:', error.code);
+        res.status(500).json({
+            message: 'Error interno del servidor',
+            error: error.message
         });
     }
 });
 
-// GET /api/appointments/my-appointments - Obtener citas del usuario autenticado
-router.get('/my-appointments', authenticateToken, async (req, res) => {
+// PUT /api/appointments/:id/cancel - Cancelar una cita
+router.put('/:id/cancel', authenticateToken, async (req, res) => {
     try {
-        const userId = req.user?.userId;
-        
-        if (!userId) {
-            return res.status(400).json({
-                message: 'ID de usuario no encontrado en el token'
+        const appointmentId = req.params.id;
+        const patientId = req.user.userId;
+
+        console.log('❌ === CANCELAR CITA ===');
+        console.log('📋 AppointmentId:', appointmentId);
+        console.log('👤 PatientId:', patientId);
+
+        // Verificar que el usuario es un paciente
+        if (req.user.roleId !== 3) {
+            console.log('❌ Usuario no es paciente');
+            return res.status(403).json({
+                message: 'Solo los pacientes pueden cancelar citas'
             });
         }
 
-        // Obtener las citas del usuario con información del doctor y especialidad (excluyendo canceladas)
-        const appointments = await sql`
-            SELECT 
-                a.id, 
-                a.appointment_date, 
-                a.duration_minutes,
-                a.reason, 
-                a.status, 
-                a.created_at,
-                u.first_name as doctor_first_name, 
-                u.last_name as doctor_last_name,
-                s.name as specialty_name, 
-                s.icon as specialty_icon,
-                s.color as specialty_color
-            FROM appointments a
-            JOIN users u ON a.doctor_id = u.id
-            JOIN doctors d ON u.id = d.id
-            JOIN specialties s ON d.specialty_id = s.id
-            WHERE a.patient_id = ${userId}
-            AND a.status != 'cancelled'
-            ORDER BY a.appointment_date DESC
+        // Verificar que la cita existe y pertenece al paciente
+        const checkQuery = `
+            SELECT id, status FROM appointments 
+            WHERE id = $1 AND patient_id = $2
         `;
+        const checkResult = await pool.query(checkQuery, [appointmentId, patientId]);
 
-        // Formatear las citas para el frontend
-        const formattedAppointments = appointments.map(appointment => {
-            const appointmentDate = new Date(appointment.appointment_date);
-            return {
-                ...appointment,
-                appointment_date: appointmentDate.toISOString().split('T')[0], // YYYY-MM-DD
-                appointment_time: appointmentDate.toTimeString().slice(0, 5), // HH:MM
-                doctor_name: `${appointment.doctor_first_name} ${appointment.doctor_last_name}`
-            };
-        });
-
-        res.json(formattedAppointments);
-    } catch (error) {
-        console.error('Error fetching user appointments:', error);
-        res.status(500).json({ 
-            message: 'Error al obtener las citas',
-            error: error.message 
-        });
-    }
-});
-
-// GET /api/appointments/my-appointments-history - Obtener historial completo de citas (incluyendo canceladas)
-router.get('/my-appointments-history', authenticateToken, async (req, res) => {
-    try {
-        const userId = req.user?.userId;
-        
-        if (!userId) {
-            return res.status(400).json({
-                message: 'ID de usuario no encontrado en el token'
+        if (checkResult.rows.length === 0) {
+            console.log('❌ Cita no encontrada o no pertenece al paciente');
+            return res.status(404).json({
+                message: 'Cita no encontrada o no tienes permisos para modificarla'
             });
         }
 
-        // Obtener todas las citas del usuario (incluyendo canceladas)
-        const appointments = await sql`
-            SELECT 
-                a.id, 
-                a.appointment_date, 
-                a.duration_minutes,
-                a.reason, 
-                a.status, 
-                a.created_at,
-                u.first_name as doctor_first_name, 
-                u.last_name as doctor_last_name,
-                s.name as specialty_name, 
-                s.icon as specialty_icon,
-                s.color as specialty_color
-            FROM appointments a
-            JOIN users u ON a.doctor_id = u.id
-            JOIN doctors d ON u.id = d.id
-            JOIN specialties s ON d.specialty_id = s.id
-            WHERE a.patient_id = ${userId}
-            ORDER BY a.appointment_date DESC
-        `;
+        const appointment = checkResult.rows[0];
+        
+        // Verificar que la cita no esté ya cancelada
+        if (appointment.status === 'cancelled') {
+            console.log('❌ Cita ya está cancelada');
+            return res.status(400).json({
+                message: 'La cita ya está cancelada'
+            });
+        }
 
-        // Formatear las citas para el frontend
-        const formattedAppointments = appointments.map(appointment => {
-            const appointmentDate = new Date(appointment.appointment_date);
-            return {
-                ...appointment,
-                appointment_date: appointmentDate.toISOString().split('T')[0], // YYYY-MM-DD
-                appointment_time: appointmentDate.toTimeString().slice(0, 5), // HH:MM
-                doctor_name: `${appointment.doctor_first_name} ${appointment.doctor_last_name}`
-            };
+        // Cancelar la cita
+        const updateQuery = `
+            UPDATE appointments 
+            SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP
+            WHERE id = $1 AND patient_id = $2
+            RETURNING id, status, updated_at
+        `;
+        
+        console.log('📝 SQL Query:', updateQuery);
+        console.log('📊 SQL Params:', [appointmentId, patientId]);
+
+        const result = await pool.query(updateQuery, [appointmentId, patientId]);
+        const cancelledAppointment = result.rows[0];
+
+        console.log('✅ Cita cancelada:', cancelledAppointment);
+
+        res.json({
+            message: 'Cita cancelada exitosamente',
+            appointment: cancelledAppointment
         });
 
-        res.json(formattedAppointments);
     } catch (error) {
-        console.error('Error fetching user appointment history:', error);
-        res.status(500).json({ 
-            message: 'Error al obtener el historial de citas',
-            error: error.message 
+        console.log('❌ === ERROR AL CANCELAR CITA ===');
+        console.error('📋 Error completo:', error);
+        console.error('🔍 Error message:', error.message);
+        console.error('📊 Error code:', error.code);
+        res.status(500).json({
+            message: 'Error interno del servidor',
+            error: error.message
         });
     }
 });
@@ -530,285 +345,113 @@ router.get('/my-appointments-history', authenticateToken, async (req, res) => {
 // GET /api/appointments/doctor-appointments - Obtener citas del doctor autenticado
 router.get('/doctor-appointments', authenticateToken, async (req, res) => {
     try {
-        const userId = req.user?.userId;
+        const doctorId = req.user.userId;
         
-        if (!userId) {
-            return res.status(400).json({
-                message: 'ID de usuario no encontrado en el token'
-            });
-        }
-
+        console.log('👨‍⚕️ === CARGAR CITAS DOCTOR ===');
+        console.log('👤 Usuario autenticado:', { userId: req.user.userId, roleId: req.user.roleId });
+        console.log('🆔 DoctorId a buscar:', doctorId);
+        
         // Verificar que el usuario es un doctor
-        const doctorCheck = await sql`
-            SELECT id FROM users 
-            WHERE id = ${userId} AND role_id = 2
-        `;
-
-        if (doctorCheck.length === 0) {
+        if (req.user.roleId !== 2) {
+            console.log('❌ Usuario no es doctor - roleId:', req.user.roleId);
             return res.status(403).json({
-                message: 'Acceso denegado. Solo doctores pueden acceder a esta información.'
+                message: 'Solo los doctores pueden ver sus citas'
             });
         }
 
-        // Primero obtener el doctor_id del usuario
-        const doctorInfo = await sql`
-            SELECT id as doctor_id FROM doctors 
-            WHERE id = ${userId}
-        `;
-
-        if (doctorInfo.length === 0) {
-            return res.status(404).json({
-                message: 'Información de doctor no encontrada'
-            });
-        }
-
-        const doctorId = doctorInfo[0].doctor_id;
-
-        // Obtener las citas del doctor con información del paciente
-        const appointments = await sql`
+        const query = `
             SELECT 
                 a.id, 
                 a.appointment_date, 
                 a.duration_minutes,
-                a.reason, 
+                a.reason_for_visit as reason, 
                 a.status, 
                 a.created_at,
-                u.first_name as patient_first_name, 
-                u.last_name as patient_last_name,
-                u.email as patient_email,
-                u.phone as patient_phone,
+                pu.first_name as patient_name,
+                pu.last_name as patient_last_name,
+                pu.email as patient_email,
+                pu.phone as patient_phone,
+                CONCAT(pu.first_name, ' ', pu.last_name) as patient_full_name,
                 s.name as specialty_name
             FROM appointments a
-            JOIN users u ON a.patient_id = u.id
+            JOIN patients p ON a.patient_id = p.id
+            JOIN users pu ON p.id = pu.id
             JOIN doctors d ON a.doctor_id = d.id
-            JOIN specialties s ON d.specialty_id = s.id
-            WHERE a.doctor_id = ${doctorId}
-            AND a.status != 'cancelled'
-            ORDER BY a.appointment_date ASC
+            LEFT JOIN specialties s ON d.specialty_id = s.id
+            WHERE a.doctor_id = $1
+            ORDER BY a.appointment_date DESC
         `;
-
-        // Formatear las citas para el frontend
-        const formattedAppointments = appointments.map(appointment => {
-            const appointmentDate = new Date(appointment.appointment_date);
-            return {
-                ...appointment,
-                appointment_date: appointmentDate.toISOString().split('T')[0], // YYYY-MM-DD
-                appointment_time: appointmentDate.toTimeString().slice(0, 5), // HH:MM
-                patient_name: `${appointment.patient_first_name} ${appointment.patient_last_name}`
-            };
-        });
-
-        res.json(formattedAppointments);
+        
+        console.log('📝 SQL Query:', query);
+        console.log('📊 SQL Params:', [doctorId]);
+        
+        const result = await pool.query(query, [doctorId]);
+        
+        console.log('✅ Citas encontradas:', result.rows.length);
+        console.log('📋 Citas:', result.rows);
+        
+        res.json(result.rows);
     } catch (error) {
-        console.error('Error fetching doctor appointments:', error);
-        res.status(500).json({ 
-            message: 'Error al obtener las citas del doctor',
-            error: error.message 
+        console.log('❌ === ERROR AL CARGAR CITAS DOCTOR ===');
+        console.error('📋 Error completo:', error);
+        console.error('🔍 Error message:', error.message);
+        console.error('📊 Error code:', error.code);
+        res.status(500).json({
+            message: 'Error interno del servidor',
+            error: error.message
         });
     }
 });
 
-// PUT /api/appointments/:appointmentId/complete - Marcar cita como completada (solo doctores)
-router.put('/:appointmentId/complete', authenticateToken, async (req, res) => {
-    try {
-        const { appointmentId } = req.params;
-        const userId = req.user?.userId;
-        const { notes } = req.body; // Notas opcionales del doctor
-
-        // Verificar que la cita pertenece al doctor autenticado
-        const existingAppointment = await sql`
-            SELECT id FROM appointments
-            WHERE id = ${appointmentId}
-            AND doctor_id = ${userId}
-            AND status IN ('scheduled', 'confirmed')
-        `;
-
-        if (existingAppointment.length === 0) {
-            return res.status(404).json({
-                message: 'Cita no encontrada o no se puede completar'
-            });
-        }
-
-        const updatedAppointment = await sql`
-            UPDATE appointments 
-            SET status = 'completed', 
-                notes = ${notes || ''},
-                updated_at = CURRENT_TIMESTAMP
-            WHERE id = ${appointmentId}
-            RETURNING id, status, updated_at
-        `;
-
-        res.json({
-            message: 'Cita marcada como completada',
-            appointment: updatedAppointment[0]
-        });
-    } catch (error) {
-        console.error('Error completing appointment:', error);
-        res.status(500).json({ message: 'Error al completar la cita' });
-    }
-});
-
-// GET /api/appointments/doctor-stats - Obtener estadísticas del doctor
+// GET /api/appointments/doctor-stats - Obtener estadísticas del doctor autenticado
 router.get('/doctor-stats', authenticateToken, async (req, res) => {
     try {
-        const userId = req.user?.userId;
+        const doctorId = req.user.userId;
         
-        if (!userId) {
-            return res.status(400).json({
-                message: 'ID de usuario no encontrado en el token'
-            });
-        }
-
+        console.log('📊 === CARGAR ESTADÍSTICAS DOCTOR ===');
+        console.log('🆔 DoctorId:', doctorId);
+        
         // Verificar que el usuario es un doctor
-        const doctorCheck = await sql`
-            SELECT id FROM users 
-            WHERE id = ${userId} AND role_id = 2
-        `;
-
-        if (doctorCheck.length === 0) {
+        if (req.user.roleId !== 2) {
+            console.log('❌ Usuario no es doctor - roleId:', req.user.roleId);
             return res.status(403).json({
-                message: 'Acceso denegado. Solo doctores pueden acceder a esta información.'
+                message: 'Solo los doctores pueden ver sus estadísticas'
             });
         }
 
-        // Primero obtener el doctor_id del usuario
-        const doctorInfo = await sql`
-            SELECT id as doctor_id FROM doctors 
-            WHERE id = ${userId}
+        const statsQuery = `
+            SELECT 
+                COUNT(CASE WHEN DATE(appointment_date) = CURRENT_DATE AND status != 'cancelled' THEN 1 END) as todayAppointments,
+                COUNT(DISTINCT patient_id) as totalPatients,
+                COUNT(CASE WHEN appointment_date >= DATE_TRUNC('week', CURRENT_DATE) AND status != 'cancelled' THEN 1 END) as weekAppointments,
+                COUNT(CASE WHEN DATE_TRUNC('month', appointment_date) = DATE_TRUNC('month', CURRENT_DATE) AND status = 'completed' THEN 1 END) as monthCompletedAppointments
+            FROM appointments 
+            WHERE doctor_id = $1
         `;
-
-        if (doctorInfo.length === 0) {
-            return res.status(404).json({
-                message: 'Información de doctor no encontrada'
-            });
-        }
-
-        const doctorId = doctorInfo[0].doctor_id;
-
-        // Obtener estadísticas
-        const today = new Date().toISOString().split('T')[0];
         
-        // Citas de hoy
-        const todayAppointments = await sql`
-            SELECT COUNT(*) as count
-            FROM appointments
-            WHERE doctor_id = ${doctorId}
-            AND DATE(appointment_date) = ${today}
-            AND status IN ('scheduled', 'confirmed')
-        `;
-
-        // Total de pacientes únicos
-        const totalPatients = await sql`
-            SELECT COUNT(DISTINCT patient_id) as count
-            FROM appointments
-            WHERE doctor_id = ${doctorId}
-        `;
-
-        // Citas esta semana
-        const weekStart = new Date();
-        weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-        const weekStartStr = weekStart.toISOString().split('T')[0];
+        console.log('📝 Stats Query:', statsQuery);
+        console.log('📊 Stats Params:', [doctorId]);
         
-        const weekAppointments = await sql`
-            SELECT COUNT(*) as count
-            FROM appointments
-            WHERE doctor_id = ${doctorId}
-            AND DATE(appointment_date) >= ${weekStartStr}
-            AND status IN ('scheduled', 'confirmed')
-        `;
-
-        // Citas completadas este mes
-        const monthStart = new Date();
-        monthStart.setDate(1);
-        const monthStartStr = monthStart.toISOString().split('T')[0];
+        const result = await pool.query(statsQuery, [doctorId]);
+        const stats = result.rows[0];
         
-        const monthCompletedAppointments = await sql`
-            SELECT COUNT(*) as count
-            FROM appointments
-            WHERE doctor_id = ${doctorId}
-            AND DATE(appointment_date) >= ${monthStartStr}
-            AND status = 'completed'
-        `;
-
-        const stats = {
-            todayAppointments: parseInt(todayAppointments[0].count),
-            totalPatients: parseInt(totalPatients[0].count),
-            weekAppointments: parseInt(weekAppointments[0].count),
-            monthCompletedAppointments: parseInt(monthCompletedAppointments[0].count)
-        };
-
-        res.json(stats);
-    } catch (error) {
-        console.error('Error fetching doctor stats:', error);
-        res.status(500).json({ 
-            message: 'Error al obtener estadísticas del doctor',
-            error: error.message 
+        console.log('✅ Estadísticas calculadas:', stats);
+        
+        res.json({
+            todayAppointments: parseInt(stats.todayappointments) || 0,
+            totalPatients: parseInt(stats.totalpatients) || 0,
+            weekAppointments: parseInt(stats.weekappointments) || 0,
+            monthCompletedAppointments: parseInt(stats.monthcompletedappointments) || 0
         });
-    }
-});
-
-// GET /api/appointments/doctor-patients - Obtener resumen de pacientes del doctor
-router.get('/doctor-patients', authenticateToken, async (req, res) => {
-    try {
-        const userId = req.user?.userId;
         
-        if (!userId) {
-            return res.status(400).json({
-                message: 'ID de usuario no encontrado en el token'
-            });
-        }
-
-        // Verificar que el usuario es un doctor
-        const doctorCheck = await sql`
-            SELECT id FROM users 
-            WHERE id = ${userId} AND role_id = 2
-        `;
-
-        if (doctorCheck.length === 0) {
-            return res.status(403).json({
-                message: 'Acceso denegado. Solo doctores pueden acceder a esta información.'
-            });
-        }
-
-        // Primero obtener el doctor_id del usuario
-        const doctorInfo = await sql`
-            SELECT id as doctor_id FROM doctors 
-            WHERE id = ${userId}
-        `;
-
-        if (doctorInfo.length === 0) {
-            return res.status(404).json({
-                message: 'Información de doctor no encontrada'
-            });
-        }
-
-        const doctorId = doctorInfo[0].doctor_id;
-
-        // Obtener resumen de pacientes únicos del doctor
-        const patients = await sql`
-            SELECT DISTINCT
-                p.id as patient_id,
-                u.first_name || ' ' || u.last_name as patient_name,
-                u.email as patient_email,
-                u.phone as patient_phone,
-                (
-                    SELECT COUNT(*) 
-                    FROM medical_records mr 
-                    WHERE mr.patient_id = p.id AND mr.doctor_id = ${doctorId}
-                ) as medical_records_count
-            FROM appointments a
-            JOIN users u ON a.patient_id = u.id
-            JOIN patients p ON u.id = p.id
-            WHERE a.doctor_id = ${doctorId}
-            ORDER BY u.first_name, u.last_name
-        `;
-
-        res.json(patients);
     } catch (error) {
-        console.error('Error fetching doctor patients:', error);
-        res.status(500).json({ 
-            message: 'Error al obtener pacientes del doctor',
-            error: error.message 
+        console.log('❌ === ERROR AL CARGAR ESTADÍSTICAS ===');
+        console.error('📋 Error completo:', error);
+        console.error('🔍 Error message:', error.message);
+        console.error('📊 Error code:', error.code);
+        res.status(500).json({
+            message: 'Error interno del servidor',
+            error: error.message
         });
     }
 });

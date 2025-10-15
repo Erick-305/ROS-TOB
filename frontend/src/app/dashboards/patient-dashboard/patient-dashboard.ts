@@ -132,13 +132,26 @@ export class PatientDashboard implements OnInit {
   }
 
   async loadMyAppointments() {
+    console.log('📋 === FRONTEND: CARGAR CITAS ===');
     this.isLoadingAppointments = true;
+    
     try {
       const headers = this.getAuthHeaders();
+      console.log('📊 Headers de autorización:', headers);
+      console.log('🔗 URL del endpoint:', `${this.apiUrl}/appointments/my-appointments`);
+      
       const response = await this.http.get<Appointment[]>(`${this.apiUrl}/appointments/my-appointments`, { headers }).toPromise();
+      
+      console.log('✅ Respuesta del servidor:', response);
+      console.log('📋 Número de citas cargadas:', response?.length || 0);
+      
       this.appointments = response || [];
     } catch (error) {
-      console.error('Error loading appointments:', error);
+      console.log('❌ === FRONTEND: ERROR AL CARGAR CITAS ===');
+      console.error('📋 Error completo:', error);
+      console.error('🔍 Error status:', (error as any).status);
+      console.error('📊 Error message:', (error as any).error?.message);
+      
       this.appointments = [];
       this.notificationService.error('Error', 'No se pudieron cargar las citas');
     } finally {
@@ -244,23 +257,31 @@ export class PatientDashboard implements OnInit {
 
   // Agendar nueva cita
   async scheduleAppointment() {
+    console.log('🏥 === FRONTEND: AGENDAR CITA ===');
+    
     if (!this.isFormValid()) {
+      console.log('❌ Formulario no válido');
       this.notificationService.warning('Formulario Incompleto', 'Por favor, completa todos los campos requeridos');
       return;
     }
 
     try {
       const headers = this.getAuthHeaders();
+      
+      console.log('📋 Headers de autorización:', headers);
+      
       const appointmentData = {
-        specialty_id: this.newAppointment.specialtyId,
-        doctor_id: this.newAppointment.doctorId,
-        appointment_date: this.newAppointment.date,
-        appointment_time: this.newAppointment.time,
-        reason_for_visit: this.newAppointment.reason,
-        duration_minutes: 30
+        doctorId: this.newAppointment.doctorId,
+        appointmentDate: `${this.newAppointment.date}T${this.newAppointment.time}:00`,
+        reason: this.newAppointment.reason
       };
 
+      console.log('📊 Datos de la cita a enviar:', appointmentData);
+      console.log('🔗 URL del endpoint:', `${this.apiUrl}/appointments/create`);
+
       const response = await this.http.post<any>(`${this.apiUrl}/appointments/create`, appointmentData, { headers }).toPromise();
+      
+      console.log('✅ Respuesta del servidor:', response);
       
       if (response) {
         this.notificationService.success('Cita Agendada', 'Tu cita ha sido programada exitosamente');
@@ -268,7 +289,12 @@ export class PatientDashboard implements OnInit {
         this.loadMyAppointments(); // Recargar las citas
       }
     } catch (error: any) {
-      console.error('Error scheduling appointment:', error);
+      console.log('❌ === FRONTEND: ERROR AL AGENDAR CITA ===');
+      console.error('📋 Error completo:', error);
+      console.error('🔍 Error status:', error.status);
+      console.error('📊 Error message:', error.error?.message);
+      console.error('🚨 Error object:', error.error);
+      
       const errorMessage = error.error?.message || 'Error al agendar la cita. Por favor, intenta nuevamente.';
       this.notificationService.error('Error al Agendar', errorMessage);
     }
@@ -303,24 +329,39 @@ export class PatientDashboard implements OnInit {
 
   // Cancelar cita
   async cancelAppointment(appointmentId: string) {
+    console.log('❌ === FRONTEND: CANCELAR CITA ===');
+    console.log('🆔 AppointmentId:', appointmentId);
+    
     if (!confirm('¿Estás seguro de que deseas cancelar esta cita?')) {
+      console.log('❌ Usuario canceló la confirmación');
       return;
     }
 
     try {
       const headers = this.getAuthHeaders();
+      
+      console.log('📋 Headers:', headers);
+      console.log('🔗 URL:', `${this.apiUrl}/appointments/${appointmentId}/cancel`);
+      
       const response = await this.http.put<any>(`${this.apiUrl}/appointments/${appointmentId}/cancel`, {}, { headers }).toPromise();
+      
+      console.log('✅ Respuesta del servidor:', response);
       
       if (response) {
         // Actualizar la cita en la lista
         const appointmentIndex = this.appointments.findIndex(a => a.id === appointmentId);
         if (appointmentIndex !== -1) {
           this.appointments[appointmentIndex].status = 'cancelled';
+          console.log('✅ Estado actualizado en el frontend');
         }
         this.notificationService.success('Cita Cancelada', 'La cita ha sido cancelada exitosamente');
       }
     } catch (error) {
-      console.error('Error cancelling appointment:', error);
+      console.log('❌ === FRONTEND: ERROR AL CANCELAR ===');
+      console.error('📋 Error completo:', error);
+      console.error('🔍 Error status:', (error as any).status);
+      console.error('📊 Error message:', (error as any).error?.message);
+      
       this.notificationService.error('Error al Cancelar', 'Error al cancelar la cita. Por favor, intenta nuevamente.');
     }
   }
@@ -346,19 +387,30 @@ export class PatientDashboard implements OnInit {
   }
 
   async confirmReschedule() {
+    console.log('🔄 === FRONTEND: REPROGRAMAR CITA ===');
+    
     if (!this.rescheduleDate || !this.rescheduleTime) {
+      console.log('❌ Faltan fecha o hora');
       this.notificationService.warning('Campos Requeridos', 'Por favor, selecciona fecha y hora');
       return;
     }
 
     try {
       const headers = this.getAuthHeaders();
+      
+      console.log('📋 Headers:', headers);
+      console.log('🆔 AppointmentId:', this.rescheduleAppointmentId);
+      
       const requestBody = {
-        appointment_date: this.rescheduleDate,
-        appointment_time: this.rescheduleTime
+        appointmentDate: `${this.rescheduleDate}T${this.rescheduleTime}:00`
       };
 
+      console.log('📊 Datos a enviar:', requestBody);
+      console.log('🔗 URL:', `${this.apiUrl}/appointments/${this.rescheduleAppointmentId}/reschedule`);
+
       const response = await this.http.put<any>(`${this.apiUrl}/appointments/${this.rescheduleAppointmentId}/reschedule`, requestBody, { headers }).toPromise();
+      
+      console.log('✅ Respuesta del servidor:', response);
       
       if (response) {
         this.notificationService.success('Cita Reprogramada', 'La cita ha sido reprogramada exitosamente');
@@ -366,7 +418,11 @@ export class PatientDashboard implements OnInit {
         this.loadMyAppointments(); // Recargar las citas
       }
     } catch (error: any) {
-      console.error('Error rescheduling appointment:', error);
+      console.log('❌ === FRONTEND: ERROR AL REPROGRAMAR ===');
+      console.error('📋 Error completo:', error);
+      console.error('🔍 Error status:', error.status);
+      console.error('📊 Error message:', error.error?.message);
+      
       const errorMessage = error.error?.message || 'Error al reprogramar la cita. Por favor, intenta nuevamente.';
       this.notificationService.error('Error al Reprogramar', errorMessage);
     }

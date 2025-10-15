@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Login - Hospital System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, button {
+            padding: 10px;
+            width: 100%;
+            max-width: 300px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .preset-buttons {
+            margin-bottom: 20px;
+        }
+        .preset-buttons button {
+            margin: 5px;
+            width: auto;
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏥 Hospital System - Test Login</h1>
+    
+    <div class="preset-buttons">
+        <h3>Credenciales de Prueba:</h3>
+        <button onclick="setCredentials('admin@hospital.com', 'admin123')">Admin</button>
+        <button onclick="setCredentials('dr.martinez@hospital.com', 'doctor123')">Doctor</button>
+        <button onclick="setCredentials('paciente1@email.com', 'patient123')">Paciente</button>
+        <button onclick="setCredentials('test@example.com', 'password123')">Test User</button>
+    </div>
+
+    <form id="loginForm">
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Contraseña:</label>
+            <input type="password" id="password" required>
+        </div>
+        <button type="submit">🔐 Probar Login</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+        function setCredentials(email, password) {
+            document.getElementById('email').value = email;
+            document.getElementById('password').value = password;
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerHTML = '<p>⏳ Probando login...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+                            <h3>✅ Login Exitoso!</h3>
+                            <p><strong>Usuario:</strong> ${data.user.firstName} ${data.user.lastName}</p>
+                            <p><strong>Email:</strong> ${data.user.email}</p>
+                            <p><strong>Rol:</strong> ${data.user.role.name}</p>
+                            <p><strong>Token:</strong> ${data.token.substring(0, 50)}...</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="result error">
+                            <h3>❌ Error de Login</h3>
+                            <p><strong>Status:</strong> ${response.status}</p>
+                            <p><strong>Mensaje:</strong> ${data.message}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <h3>❌ Error de Conexión</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        });
+        
+        // Cargar credenciales de admin por defecto
+        setCredentials('admin@hospital.com', 'admin123');
+    </script>
+</body>
+</html>

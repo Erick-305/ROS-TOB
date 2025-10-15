@@ -113,13 +113,13 @@ export class Register implements OnInit {
       const data = await response.json();
 
       if (response.ok) {
-        this.successMessage = 'Te hemos enviado un correo de verificación. Por favor, revisa tu bandeja de entrada.';
+        this.successMessage = 'Te hemos enviado un correo de verificación. Revisa tu bandeja de entrada y sigue las instrucciones.';
         this.registerForm.reset();
         
-        // Redirigir al login después de 6 segundos
+        // Redirigir a la página de verificación después de 3 segundos
         setTimeout(() => {
-          this.router.navigate(['/login']);
-        }, 6000);
+          this.router.navigate(['/verify-email']);
+        }, 3000);
       } else {
         this.errorMessage = data.message || 'Error al registrar usuario';
       }

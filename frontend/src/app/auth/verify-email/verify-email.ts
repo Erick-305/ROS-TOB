@@ -1,71 +1,60 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Auth } from '../auth';
 
 @Component({
   selector: 'app-verify-email',
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './verify-email.html',
   styleUrl: './verify-email.css'
 })
-export class VerifyEmail implements OnInit {
-  isLoading = true;
+export class VerifyEmail {
+  isLoading = false;
   isSuccess = false;
   isError = false;
   message = '';
-  token = '';
+  
+  verificationData = {
+    email: '',
+    code: ''
+  };
 
   constructor(
-    private route: ActivatedRoute,
     private router: Router,
     private http: HttpClient,
     private auth: Auth
   ) {}
 
-  ngOnInit() {
-    // Obtener token de la URL
-    this.route.queryParams.subscribe(params => {
-      this.token = params['token'];
-      
-      if (this.token) {
-        this.verifyEmail();
-      } else {
-        this.showError('Token de verificación no encontrado en la URL');
-      }
-    });
-  }
+  onSubmit() {
+    if (!this.verificationData.email || !this.verificationData.code) {
+      this.showError('Por favor completa todos los campos');
+      return;
+    }
 
-  private verifyEmail() {
     this.isLoading = true;
     
     const apiUrl = 'http://localhost:3000/api';
     
-    this.http.post<any>(`${apiUrl}/auth/verify-email`, { token: this.token })
+    this.http.post<any>(`${apiUrl}/auth/verify-email`, this.verificationData)
       .subscribe({
         next: (response) => {
+          console.log('Respuesta exitosa:', response);
           this.isLoading = false;
           this.isSuccess = true;
-          this.message = response.message;
+          this.message = '¡Cuenta verificada con éxito! Serás redirigido al login en unos segundos.';
           
-          // Guardar token y usuario en localStorage
-          if (response.token && response.user) {
-            localStorage.setItem('token', response.token);
-            localStorage.setItem('user', JSON.stringify(response.user));
-            
-            // Actualizar el servicio de autenticación
-            this.auth['currentUserSubject'].next(response.user);
-            
-            // Redireccionar al dashboard después de 3 segundos
-            setTimeout(() => {
-              this.redirectBasedOnRole(response.user.role.name);
-            }, 3000);
-          }
+          // Redireccionar al login después de 3 segundos
+          setTimeout(() => {
+            this.router.navigate(['/login']);
+          }, 3000);
         },
         error: (error) => {
+          console.error('Error en verificación:', error);
           this.isLoading = false;
-          this.showError(error.error?.message || 'Error al verificar el email');
+          this.showError(error.error?.message || 'Error al verificar el código');
         }
       });
   }
@@ -75,25 +64,6 @@ export class VerifyEmail implements OnInit {
     this.isError = true;
     this.isSuccess = false;
     this.message = message;
-  }
-
-  private redirectBasedOnRole(roleName: string) {
-    switch (roleName.toLowerCase()) {
-      case 'patient':
-      case 'paciente':
-        this.router.navigate(['/patient-dashboard']);
-        break;
-      case 'doctor':
-      case 'médico':
-        this.router.navigate(['/doctor-dashboard']);
-        break;
-      case 'admin':
-      case 'administrador':
-        this.router.navigate(['/admin-dashboard']);
-        break;
-      default:
-        this.router.navigate(['/dashboard']);
-    }
   }
 
   goToLogin() {
