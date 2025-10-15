@@ -3,9 +3,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
+  background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%);
+  padding: 15px;
   position: relative;
+  overflow: hidden;
 }
 
 /* Imagen médica muy sutil de fondo */
@@ -23,14 +24,16 @@
 
 .login-card {
   background: white;
-  border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  padding: 20px;
   width: 100%;
-  max-width: 450px;
+  max-width: 320px;
   animation: slideUp 0.3s ease-out;
   position: relative;
   z-index: 10;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 @keyframes slideUp {
@@ -46,19 +49,19 @@
 
 .login-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 25px;
 }
 
 .logo-container {
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 15px;
+  gap: 10px;
 }
 
 .logo-container i {
-  font-size: 4rem;
+  font-size: 3rem;
   color: #667eea;
   filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.1));
   animation: pulse 2s infinite;
@@ -66,8 +69,8 @@
 
 /* Logo SVG en login */
 .hospital-logo-login {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   opacity: 0.9;
   animation: pulse 2s infinite;
   filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.1));
@@ -80,8 +83,8 @@
 
 .login-header h1 {
   color: #2c3e50;
-  margin: 0 0 15px 0;
-  font-size: 2rem;
+  margin: 0 0 10px 0;
+  font-size: 1.6rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -91,7 +94,7 @@
 .login-header h2 {
   color: #7f8c8d;
   margin: 0;
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -99,15 +102,15 @@
 }
 
 .form-group {
-  margin-bottom: 25px;
+  margin-bottom: 18px;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   color: #2c3e50;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.9rem;
   display: flex;
   align-items: center;
 }
@@ -128,10 +131,10 @@
 
 .form-control {
   width: 100%;
-  padding: 15px 15px 15px 45px;
+  padding: 12px 12px 12px 40px;
   border: 2px solid #e1e8ed;
-  border-radius: 12px;
-  font-size: 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
   transition: all 0.3s ease;
   box-sizing: border-box;
   background: rgba(255, 255, 255, 0.9);

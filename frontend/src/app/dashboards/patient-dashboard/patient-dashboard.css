@@ -1,19 +1,32 @@
 /* Dashboard de Paciente - Estilos */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 .patient-dashboard-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%);
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  animation: fadeIn 0.5s ease-out;
 }
 
 /* Header */
 .dashboard-header {
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
   position: sticky;
   top: 0;
   z-index: 100;
+  transition: all 0.3s ease;
 }
 
 .header-content {
@@ -74,19 +87,22 @@
 }
 
 .logout-btn {
-  padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  padding: 0.7rem 1.5rem;
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: all 0.3s ease;
+  font-weight: 600;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(250, 112, 154, 0.3);
 }
 
 .logout-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(250, 112, 154, 0.5);
+  background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
 }
 
 /* Main Content */
@@ -106,14 +122,21 @@
 
 .portal-card {
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 2rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 2.5rem;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 2rem;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.portal-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  border-color: rgba(79, 172, 254, 0.4);
 }
 
 .portal-icon {
@@ -180,11 +203,17 @@
 /* Form Card */
 .appointment-form-card {
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 2rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 2.5rem;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.appointment-form-card:hover {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
 }
 
 .appointment-form {
@@ -218,12 +247,23 @@
 .form-select,
 .form-input,
 .form-textarea {
-  padding: 0.8rem;
+  padding: 1rem;
   border: 2px solid #e1e5e9;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 1rem;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.form-select:focus,
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #4facfe;
+  box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.2);
   background: white;
+  transform: translateY(-1px);
 }
 
 .form-select:focus,
@@ -249,24 +289,28 @@
 
 .btn-primary,
 .btn-secondary {
-  padding: 0.8rem 2rem;
+  padding: 1rem 2.5rem;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 140px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 160px;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
   color: white;
+  box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
 }
 
 .btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 12px 35px rgba(79, 172, 254, 0.5);
+  background: linear-gradient(135deg, #3182ce 0%, #00d4ff 100%);
 }
 
 .btn-primary:disabled {
@@ -298,11 +342,18 @@
 
 .appointment-card {
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 15px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(20px);
+  border-radius: 18px;
+  padding: 2rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.appointment-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.18);
+  border-color: rgba(79, 172, 254, 0.3);
 }
 
 .appointment-info {

@@ -1,16 +1,19 @@
 .dashboard-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%);
   padding: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  animation: fadeIn 0.5s ease-out;
 }
 
 .dashboard-header {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
   padding: 1rem 2rem;
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
 }
 
 .user-info {
@@ -24,8 +27,12 @@
 .user-info h1 {
   margin: 0;
   color: #2c3e50;
-  font-size: 1.8rem;
-  font-weight: 600;
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .user-details {
@@ -46,7 +53,7 @@
 }
 
 .logout-btn {
-  background: #e74c3c;
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -57,19 +64,22 @@
 }
 
 .logout-btn:hover {
-  background: #c0392b;
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
 }
 
 .welcome-card {
-  background: white;
+  background: rgba(255, 255, 255, 0.95);
   margin: 2rem auto;
   max-width: 800px;
-  border-radius: 15px;
+  border-radius: 16px;
   padding: 2rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
   border-left: 5px solid;
   animation: slideIn 0.6s ease-out;
+  backdrop-filter: blur(20px);
+  transition: all 0.3s ease;
 }
 
 @keyframes slideIn {
@@ -84,11 +94,18 @@
 }
 
 .welcome-card.admin {
-  border-left-color: #e74c3c;
+  border-left-color: #fa709a;
+  background: linear-gradient(135deg, rgba(250, 112, 154, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
 }
 
 .welcome-card.doctor {
-  border-left-color: #3498db;
+  border-left-color: #667eea;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+
+.welcome-card.patient {
+  border-left-color: #4facfe;
+  background: linear-gradient(135deg, rgba(79, 172, 254, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
 }
 
 .welcome-card.patient {

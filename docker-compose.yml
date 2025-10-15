@@ -1,19 +1,23 @@
-version: '3.8'
-
 services:
   # Base de datos PostgreSQL
   postgres:
-    image: postgres:17
+    image: postgres:17.0
     container_name: hospital_postgres
     environment:
       POSTGRES_DB: hospital_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres123
+    restart: always
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - hospital_network
 
@@ -26,13 +30,14 @@ services:
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: hospital_db
-      DB_USER: hospital_user
-      DB_PASSWORD: hospital_password
+      DB_USER: postgres
+      DB_PASSWORD: postgres123
       JWT_SECRET: your_jwt_secret_key_here
     ports:
       - "3000:3000"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -48,9 +53,13 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+    depends_on:
+      - backend
+    command: ng serve --host 0.0.0.0 --port 4200
     networks:
       - hospital_network
 
+# Definiciones globales
 volumes:
   postgres_data:
 
