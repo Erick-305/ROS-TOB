@@ -1,6 +1,6 @@
-# 🏥 Sistema Hospitalario
+# 🏥 ROS-TOB - Sistema Ho
 
-Sistema completo de gestión hospitalaria con dashboard de pacientes, doctores y administradores.
+Sistema completo de gestión hospitalaria **ROS-TOB** con dashboard de pacientes, doctores y administradores.
 
 ## 🚀 Características
 
@@ -46,7 +46,7 @@ Sistema completo de gestión hospitalaria con dashboard de pacientes, doctores y
 ## 🏗️ Arquitectura
 
 ```
-hospital-system/
+ros-tob-system/
 ├── frontend/          # Aplicación Angular
 ├── backend/           # API REST con Node.js
 ├── database/          # Scripts SQL y configuración
@@ -61,8 +61,8 @@ hospital-system/
 
 ### **1. Clonar el repositorio**
 ```bash
-git clone https://github.com/Steven-tec/hospital-system.git
-cd hospital-system
+git clone https://github.com/Erick-305/ROS-TOB.git
+cd ros-tob-system
 ```
 
 ### **2. Levantar los servicios**
@@ -160,10 +160,22 @@ Este proyecto está bajo la Licencia MIT.
 
 ## 👨‍💻 Desarrollador
 
-**Steven Cabascango**
-- GitHub: [@Steven-tec](https://github.com/Steven-tec)
-- Email: stivoter1234567890@gmail.com
+**Erick-305**
+- GitHub: [@Erick-305](https://github.com/Erick-305)
+- Repositorio: [ROS-TOB](https://github.com/Erick-305/ROS-TOB)
 
 ---
 
-⭐ **¡Si te gusta este proyecto, dale una estrella en GitHub!** ⭐
+⭐ **¡Si te gusta este proyecto ROS-TOB, dale una estrella en GitHub!** ⭐
+
+## 🎯 Acerca de ROS-TOB
+
+**ROS-TOB** es un sistema hospitalario completo diseñado para optimizar la gestión médica y administrativa en centros de salud. El nombre refleja nuestra misión de crear un sistema robusto y eficiente para la atención hospitalaria moderna.
+
+### 🚀 Características Principales de ROS-TOB:
+- **R**obust - Sistema robusto y confiable
+- **O**ptimized - Optimizado para rendimiento
+- **S**ecure - Seguridad de datos garantizada
+- **T**echnology - Tecnología moderna
+- **O**rganized - Organización eficiente
+- **B**est - Las mejores prácticas implementadas
