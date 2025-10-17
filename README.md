@@ -1,25 +1,28 @@
-# 🏥 ROS-TOB - Sistema Ho
+# 📚 ROS-TOB PUBLICACIONES - Sistema de Gestión de Librería
 
-Sistema completo de gestión hospitalaria **ROS-TOB** con dashboard de pacientes, doctores y administradores.
+Sistema completo de gestión de librería y editorial **ROS-TOB PUBLICACIONES** con facturación, inventario y administración de libros.
 
 ## 🚀 Características
 
-### ✅ **Dashboard de Paciente**
-- Portal interactivo para pacientes
-- Agendamiento de citas médicas
-- Visualización de citas programadas
-- Cancelación y reprogramación de citas
+### ✅ **Dashboard de Cliente**
+- Portal interactivo para clientes
+- Catálogo de libros con filtros
+- Carrito de compras
+- Historial de pedidos y facturas
 - Interfaz moderna y responsive
 
-### ✅ **Dashboard de Doctor**
-- Gestión de citas asignadas
-- Visualización de pacientes
-- Horarios y disponibilidad
+### ✅ **Dashboard de Empleado**
+- Gestión de inventario de libros
+- Procesamiento de pedidos
+- Atención al cliente
+- Reportes de ventas
 
 ### ✅ **Dashboard de Administrador**
 - Gestión completa de usuarios
-- Supervisión de todas las citas
-- Reportes y estadísticas
+- Administración de catálogo de libros
+- Control de autores y categorías
+- Facturación y reportes financieros
+- Gestión de empleados y clientes
 
 ## 🛠️ Tecnologías
 
@@ -47,7 +50,7 @@ Sistema completo de gestión hospitalaria **ROS-TOB** con dashboard de pacientes
 
 ```
 ros-tob-system/
-├── frontend/          # Aplicación Angular
+├── frontend/          # Aplicación Angular para la librería
 ├── backend/           # API REST con Node.js
 ├── database/          # Scripts SQL y configuración
 └── docker-compose.yml # Configuración de contenedores
@@ -78,38 +81,42 @@ docker-compose up -d
 ## 👥 Usuarios de Prueba
 
 ### **Administrador**
-- **Email**: admin@hospital.com
+- **Email**: admin@rostob.com
 - **Password**: admin123
 
-### **Paciente**
-- **Email**: test@test.com  
+### **Cliente**
+- **Email**: cliente@test.com  
 - **Password**: password123
 
-### **Doctor**
-- **Email**: dr.martinez@hospital.com
-- **Password**: doctor123
+### **Empleado**
+- **Email**: empleado@rostob.com
+- **Password**: empleado123
 
-## 📱 Funcionalidades del Dashboard de Paciente
+## 📱 Funcionalidades del Sistema de Librería
 
-1. **🏥 Portal Principal**
-   - Bienvenida personalizada
-   - Información del sistema
+1. **📚 Catálogo de Libros**
+   - Navegación por categorías
+   - Búsqueda avanzada por título, autor, ISBN
+   - Filtros por precio, disponibilidad, categoría
 
-2. **📅 Agendamiento de Citas**
-   - Selección de especialidad médica
-   - Filtrado automático de doctores por especialidad
-   - Selección de fecha y hora
-   - Descripción del motivo de consulta
+2. **� Carrito de Compras**
+   - Agregar/quitar libros del carrito
+   - Cálculo automático de totales
+   - Proceso de checkout simplificado
 
-3. **📋 Gestión de Citas**
-   - Visualización de citas programadas
-   - Estado de las citas (programada, confirmada, completada)
-   - Reprogramación de citas
-   - Cancelación de citas
+3. **🧾 Facturación**
+   - Generación automática de facturas
+   - Historial de compras del cliente
+   - Estados de facturas (pendiente, pagada, cancelada)
 
-4. **🎨 Diseño Moderno**
-   - Interfaz intuitiva y atractiva
-   - Colores diferenciados por especialidad
+4. **� Gestión de Inventario**
+   - Control de stock en tiempo real
+   - Alertas de bajo inventario
+   - Gestión de autores y editoriales
+
+5. **🎨 Diseño Moderno**
+   - Interfaz intuitiva para librería
+   - Colores temáticos literarios
    - Responsive design
    - Feedback visual inmediato
 
@@ -132,27 +139,30 @@ npm start
 ### **Base de Datos**
 La base de datos se inicializa automáticamente con Docker usando los scripts en `/database/`.
 
-## 📊 Especialidades Médicas Disponibles
+## 📊 Categorías de Libros Disponibles
 
-- 🫀 **Cardiología** - Especialista en enfermedades del corazón
-- 👩‍⚕️ **Ginecología** - Especialista en salud femenina  
-- 🩺 **Medicina General** - Consulta médica general
-- 🧠 **Neurología** - Especialista en sistema nervioso
-- 👶 **Pediatría** - Especialista en salud infantil
+- 📖 **Ficción** - Novelas y cuentos
+- 📚 **No Ficción** - Biografías, ensayos, autoayuda
+- 🎓 **Educativo** - Libros de texto y académicos
+- 👶 **Infantil** - Literatura para niños
+- 🔬 **Ciencia y Tecnología** - Libros técnicos y científicos
+- 🎨 **Arte y Cultura** - Libros de arte, música y cultura
+- � **Negocios** - Administración, finanzas y emprendimiento
 
 ## 🔐 Seguridad
 
 - Autenticación JWT
 - Encriptación de contraseñas con bcrypt
-- Verificación de roles y permisos
+- Verificación de roles y permisos (cliente, empleado, administrador)
 - Validación de datos en frontend y backend
+- Protección contra inyección SQL
 
 ## 🐳 Docker
 
 El proyecto incluye configuración completa de Docker:
-- **Frontend**: Angular en contenedor optimizado
-- **Backend**: Node.js con dependencias
-- **Database**: PostgreSQL con datos iniciales
+- **Frontend**: Angular en contenedor optimizado para librería
+- **Backend**: Node.js con APIs de libros y facturación
+- **Database**: PostgreSQL con datos de libros y autores
 
 ## 📝 Licencia
 
@@ -166,16 +176,16 @@ Este proyecto está bajo la Licencia MIT.
 
 ---
 
-⭐ **¡Si te gusta este proyecto ROS-TOB, dale una estrella en GitHub!** ⭐
+⭐ **¡Si te gusta este proyecto ROS-TOB PUBLICACIONES, dale una estrella en GitHub!** ⭐
 
-## 🎯 Acerca de ROS-TOB
+## 🎯 Acerca de ROS-TOB PUBLICACIONES
 
-**ROS-TOB** es un sistema hospitalario completo diseñado para optimizar la gestión médica y administrativa en centros de salud. El nombre refleja nuestra misión de crear un sistema robusto y eficiente para la atención hospitalaria moderna.
+**ROS-TOB PUBLICACIONES** es un sistema completo de gestión de librería y editorial diseñado para optimizar las operaciones comerciales y administrativas en librerías, editoriales y distribuidoras de libros.
 
 ### 🚀 Características Principales de ROS-TOB:
-- **R**obust - Sistema robusto y confiable
-- **O**ptimized - Optimizado para rendimiento
-- **S**ecure - Seguridad de datos garantizada
-- **T**echnology - Tecnología moderna
-- **O**rganized - Organización eficiente
-- **B**est - Las mejores prácticas implementadas
+- **R**obust - Sistema robusto para gestión de inventario
+- **O**ptimized - Optimizado para ventas y facturación
+- **S**ecure - Seguridad en transacciones y datos
+- **T**echnology - Tecnología moderna para librerías
+- **O**rganized - Organización eficiente del catálogo
+- **B**ookstore - Especializado en gestión de librerías
