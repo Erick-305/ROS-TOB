@@ -4,11 +4,9 @@ import { Register } from './auth/register/register';
 import { VerifyEmail } from './auth/verify-email/verify-email';
 import { Dashboard } from './dashboard/dashboard';
 import { AdminDashboard } from './dashboards/admin-dashboard/admin-dashboard';
-import { DoctorDashboard } from './dashboards/doctor-dashboard/doctor-dashboard';
-import { PatientDashboard } from './dashboards/patient-dashboard/patient-dashboard';
-import { Appointment } from './dashboard/appointment/appointment';
+import { EmployeeDashboard } from './dashboards/employee-dashboard/employee-dashboard';
+import { CustomerDashboard } from './dashboards/customer-dashboard/customer-dashboard';
 import { authGuard } from './auth/auth-guard';
-import { patientGuard } from './auth/patient-guard';
 
 export const routes: Routes = [
   // Rutas públicas (sin autenticación)
@@ -23,20 +21,13 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   { 
-    path: 'doctor-dashboard', 
-    component: DoctorDashboard,
+    path: 'employee-dashboard', 
+    component: EmployeeDashboard,
     canActivate: [authGuard]
   },
   { 
-    path: 'patient-dashboard', 
-    component: PatientDashboard,
-    canActivate: [patientGuard]
-  },
-  
-  // Ruta de agendamiento de citas
-  { 
-    path: 'appointment', 
-    component: Appointment,
+    path: 'customer-dashboard', 
+    component: CustomerDashboard,
     canActivate: [authGuard]
   },
   

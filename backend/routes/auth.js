@@ -28,18 +28,26 @@ const authenticateToken = (req, res, next) => {
 // POST /api/auth/register - Registro básico
 router.post('/register', async (req, res) => {
     try {
-        const { email, password, firstName, lastName, phone, roleId = 3 } = req.body;
+        const { email, password, name, phone, address, role = 'customer' } = req.body;
 
         // Validaciones básicas
-        if (!email || !password || !firstName || !lastName) {
+        if (!email || !password || !name) {
             return res.status(400).json({
-                message: 'Email, contraseña, nombre y apellido son requeridos'
+                message: 'Email, contraseña y nombre son requeridos'
             });
         }
 
         if (password.length < 6) {
             return res.status(400).json({
                 message: 'La contraseña debe tener al menos 6 caracteres'
+            });
+        }
+
+        // Verificar roles válidos
+        const validRoles = ['customer', 'employee', 'admin'];
+        if (!validRoles.includes(role)) {
+            return res.status(400).json({
+                message: 'Rol inválido'
             });
         }
 
@@ -196,15 +204,12 @@ router.post('/login', async (req, res) => {
             });
         }
 
-        // Buscar usuario con su rol
+        // Buscar usuario
         const query = `
             SELECT 
-                u.id, u.email, u.password_hash, u.first_name, u.last_name, 
-                u.phone, u.is_active, u.email_verified,
-                r.id as role_id, r.name as role_name
-            FROM users u
-            JOIN roles r ON u.role_id = r.id
-            WHERE u.email = $1
+                id, email, password, name, phone, role, is_verified
+            FROM users 
+            WHERE email = $1
         `;
         
         const result = await pool.query(query, [email]);
@@ -218,24 +223,11 @@ router.post('/login', async (req, res) => {
 
         const user = result.rows[0];
 
-        // Verificar si el usuario está activo
-        if (!user.is_active) {
-            console.log('❌ Usuario inactivo:', email);
-            return res.status(401).json({
-                message: 'Cuenta desactivada. Contacta al administrador.'
-            });
-        }
-
-        // Verificar si el email está verificado
-        if (!user.email_verified) {
-            console.log('❌ Email no verificado:', email);
-            return res.status(401).json({
-                message: 'Por favor verifica tu email antes de iniciar sesión. Revisa tu bandeja de entrada.'
-            });
-        }
+        // Los usuarios en esta BD no tienen verificación de email ni estado activo
+        // Solo verificamos credenciales básicas
 
         // Verificar contraseña
-        const passwordMatch = await bcrypt.compare(password, user.password_hash);
+        const passwordMatch = await bcrypt.compare(password, user.password);
 
         if (!passwordMatch) {
             console.log('❌ Contraseña incorrecta para:', email);
@@ -248,8 +240,8 @@ router.post('/login', async (req, res) => {
         const tokenPayload = {
             userId: user.id,
             email: user.email,
-            roleId: user.role_id,
-            roleName: user.role_name
+            role: user.role,
+            name: user.name
         };
 
         const token = jwt.sign(
@@ -258,7 +250,7 @@ router.post('/login', async (req, res) => {
             { expiresIn: '24h' }
         );
 
-        console.log('✅ Login exitoso para:', email, 'Rol:', user.role_name);
+        console.log('✅ Login exitoso:', user.email, 'Rol:', user.role);
 
         res.json({
             message: 'Login exitoso',
@@ -266,13 +258,9 @@ router.post('/login', async (req, res) => {
             user: {
                 id: user.id,
                 email: user.email,
-                firstName: user.first_name,
-                lastName: user.last_name,
+                name: user.name,
                 phone: user.phone,
-                role: {
-                    id: user.role_id,
-                    name: user.role_name
-                }
+                role: user.role
             }
         });
 

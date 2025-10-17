@@ -18,16 +18,26 @@ export const patientGuard: CanActivateFn = (route, state) => {
     return false;
   }
 
-  // Verificar que el usuario sea paciente
-  if (currentUser.role.name === 'patient' || currentUser.role.id === 3) {
+  // Helper para obtener el nombre del rol de manera segura
+  const getRoleName = (): string => {
+    if (!currentUser?.role) return '';
+    return typeof currentUser.role === 'string' 
+      ? currentUser.role 
+      : currentUser.role.name || '';
+  };
+
+  const roleName = getRoleName().toLowerCase();
+
+  // Verificar que el usuario sea cliente/customer/patient
+  if (roleName === 'customer' || roleName === 'cliente' || roleName === 'patient') {
     return true;
   }
 
   // Redirigir según el rol del usuario
-  if (currentUser.role.name === 'admin' || currentUser.role.id === 1) {
+  if (roleName === 'admin' || roleName === 'administrador') {
     router.navigate(['/admin-dashboard']);
-  } else if (currentUser.role.name === 'doctor' || currentUser.role.id === 2) {
-    router.navigate(['/doctor-dashboard']);
+  } else if (roleName === 'employee' || roleName === 'empleado' || roleName === 'doctor') {
+    router.navigate(['/employee-dashboard']);
   } else {
     router.navigate(['/login']);
   }

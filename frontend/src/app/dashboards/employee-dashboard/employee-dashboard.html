@@ -1,0 +1,434 @@
+<div class="employee-dashboard">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <div class="user-info">
+        <div class="brand-section">
+          <rostob-logo size="small" variant="header"></rostob-logo>
+          <h1>👩‍💼 Panel de Empleado - ROSTOB PUBLICACIONES</h1>
+        </div>
+        <div class="user-details">
+          <span class="welcome-msg">Bienvenido, {{ currentUser?.name || 'Empleado' }}</span>
+          <button class="logout-btn" (click)="logout()">
+            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="dashboard-nav">
+    <button 
+      class="nav-btn" 
+      [class.active]="activeTab === 'sales'"
+      (click)="setActiveTab('sales')"
+    >
+      <i class="fas fa-chart-line"></i> Ventas
+    </button>
+    <button 
+      class="nav-btn" 
+      [class.active]="activeTab === 'new-sale'"
+      (click)="setActiveTab('new-sale')"
+    >
+      <i class="fas fa-cash-register"></i> Nueva Venta
+    </button>
+    <button 
+      class="nav-btn" 
+      [class.active]="activeTab === 'books'"
+      (click)="setActiveTab('books')"
+    >
+      <i class="fas fa-book"></i> Inventario
+    </button>
+    <button 
+      class="nav-btn" 
+      [class.active]="activeTab === 'customers'"
+      (click)="setActiveTab('customers')"
+    >
+      <i class="fas fa-users"></i> Clientes
+    </button>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    
+    <!-- Sales Tab -->
+    <div *ngIf="activeTab === 'sales'" class="tab-content">
+      <!-- Sales Stats -->
+      <section class="stats-section">
+        <div class="stats-grid">
+          <div class="stat-card revenue">
+            <div class="stat-icon">
+              <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="stat-info">
+              <h3>${{ salesStats.total_revenue | number:'1.2-2' }}</h3>
+              <p>Ingresos Totales</p>
+            </div>
+          </div>
+          
+          <div class="stat-card invoices">
+            <div class="stat-icon">
+              <i class="fas fa-receipt"></i>
+            </div>
+            <div class="stat-info">
+              <h3>{{ salesStats.total_invoices }}</h3>
+              <p>Facturas Generadas</p>
+            </div>
+          </div>
+          
+          <div class="stat-card books">
+            <div class="stat-icon">
+              <i class="fas fa-books"></i>
+            </div>
+            <div class="stat-info">
+              <h3>{{ salesStats.total_books_sold }}</h3>
+              <p>Libros Vendidos</p>
+            </div>
+          </div>
+          
+          <div class="stat-card average">
+            <div class="stat-icon">
+              <i class="fas fa-chart-bar"></i>
+            </div>
+            <div class="stat-info">
+              <h3>${{ salesStats.average_order_value | number:'1.2-2' }}</h3>
+              <p>Promedio por Venta</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recent Invoices -->
+      <section class="invoices-section">
+        <div class="section-header">
+          <h2><i class="fas fa-file-invoice-dollar"></i> Ventas Recientes</h2>
+        </div>
+        
+        <div class="invoices-table-container">
+          <table class="invoices-table">
+            <thead>
+              <tr>
+                <th>Número</th>
+                <th>Cliente</th>
+                <th>Fecha</th>
+                <th>Total</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let invoice of recentInvoices">
+                <td class="invoice-number">{{ invoice.invoice_number }}</td>
+                <td>{{ invoice.customer_name }}</td>
+                <td>{{ invoice.invoice_date | date:'short' }}</td>
+                <td class="amount">${{ invoice.total_amount | number:'1.2-2' }}</td>
+                <td>
+                  <span class="status-badge" [class]="getStatusBadge(invoice.status)">
+                    {{ getStatusText(invoice.status) }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Low Stock Alert -->
+        <div class="low-stock-alert" *ngIf="lowStockBooks.length > 0">
+          <div class="alert-header">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>⚠️ Productos con Stock Bajo</h3>
+          </div>
+          <div class="low-stock-items">
+            <div *ngFor="let book of lowStockBooks" class="low-stock-item">
+              <span class="book-title">{{ book.title }}</span>
+              <span class="stock-amount">{{ book.stock_quantity }} disponibles</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- New Sale Tab -->
+    <div *ngIf="activeTab === 'new-sale'" class="tab-content">
+      <section class="new-sale-section">
+        <div class="section-header">
+          <h2><i class="fas fa-cash-register"></i> Procesar Nueva Venta</h2>
+        </div>
+
+        <div class="sale-container">
+          <!-- Customer Selection -->
+          <div class="customer-selection">
+            <label for="customer">Seleccionar Cliente *</label>
+            <select 
+              id="customer" 
+              [(ngModel)]="newSale.customer_id" 
+              class="customer-select"
+              required
+            >
+              <option value="">-- Seleccionar Cliente --</option>
+              <option *ngFor="let customer of customers" [value]="customer.id">
+                {{ customer.name }} - {{ customer.email }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Book Search -->
+          <div class="book-search">
+            <label for="bookSearch">Buscar Libros</label>
+            <div class="search-container">
+              <input 
+                id="bookSearch"
+                type="text" 
+                [(ngModel)]="bookSearchQuery" 
+                (input)="searchBooksForSale()"
+                placeholder="Buscar por título, autor o ISBN..."
+                class="book-search-input"
+              >
+              
+              <!-- Search Results -->
+              <div class="search-results" *ngIf="searchResults.length > 0">
+                <div 
+                  *ngFor="let book of searchResults" 
+                  class="search-result-item"
+                  (click)="addBookToSale(book)"
+                >
+                  <div class="book-info">
+                    <strong>{{ book.title }}</strong>
+                    <small>{{ book.authors }} - ${{ book.price }}</small>
+                  </div>
+                  <div class="stock-info">
+                    <span class="stock">{{ book.stock_quantity }} en stock</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selected Books -->
+          <div class="selected-books" *ngIf="selectedBooks.length > 0">
+            <h3>Libros Seleccionados</h3>
+            <div class="selected-books-list">
+              <div *ngFor="let item of selectedBooks; let i = index" class="selected-book-item">
+                <div class="book-details">
+                  <h4>{{ item.title }}</h4>
+                  <span class="unit-price">${{ item.price }} c/u</span>
+                </div>
+                
+                <div class="quantity-controls">
+                  <button 
+                    class="qty-btn" 
+                    (click)="updateBookQuantity(i, item.quantity - 1)"
+                  >-</button>
+                  <span class="quantity">{{ item.quantity }}</span>
+                  <button 
+                    class="qty-btn" 
+                    (click)="updateBookQuantity(i, item.quantity + 1)"
+                    [disabled]="item.quantity >= item.max_quantity"
+                  >+</button>
+                </div>
+                
+                <div class="item-total">
+                  ${{ (item.price * item.quantity) | number:'1.2-2' }}
+                </div>
+                
+                <button class="remove-btn" (click)="removeBookFromSale(i)">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+            
+            <div class="sale-summary">
+              <div class="total-amount">
+                <strong>Total: ${{ getSaleTotal() | number:'1.2-2' }}</strong>
+              </div>
+              
+              <div class="sale-actions">
+                <button class="reset-btn" (click)="resetSale()">
+                  <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button class="process-btn" (click)="processSale()">
+                  <i class="fas fa-check"></i> Procesar Venta
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Books/Inventory Tab -->
+    <div *ngIf="activeTab === 'books'" class="tab-content">
+      <section class="books-section">
+        <div class="section-header">
+          <h2><i class="fas fa-warehouse"></i> Gestión de Inventario</h2>
+          
+          <div class="search-controls">
+            <div class="search-input-group">
+              <input 
+                type="text" 
+                [(ngModel)]="bookSearchTerm" 
+                placeholder="Buscar libros..."
+                class="search-input"
+                (keyup.enter)="searchBooks()"
+              >
+              <button class="search-btn" (click)="searchBooks()">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="loading" class="loading-container">
+          <div class="spinner"></div>
+          <p>Cargando inventario...</p>
+        </div>
+
+        <div *ngIf="!loading" class="books-table-container">
+          <table class="books-table">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Autor(es)</th>
+                <th>ISBN</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Editorial</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let book of books" [class.low-stock-row]="book.stock_quantity < 5">
+                <td>
+                  <strong>{{ book.title }}</strong>
+                  <div class="categories">{{ book.categories }}</div>
+                </td>
+                <td>{{ book.authors }}</td>
+                <td class="isbn">{{ book.isbn }}</td>
+                <td class="price">${{ book.price | number:'1.2-2' }}</td>
+                <td class="stock">
+                  <span [class.low-stock]="book.stock_quantity < 5">
+                    {{ book.stock_quantity }}
+                  </span>
+                </td>
+                <td>{{ book.publisher_name }}</td>
+                <td class="actions">
+                  <button 
+                    class="action-btn update-stock" 
+                    (click)="updateBookStock(book.id, book.stock_quantity + 10)"
+                    title="Agregar 10 unidades"
+                  >
+                    <i class="fas fa-plus"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" *ngIf="totalPages > 1">
+          <button 
+            class="pagination-btn" 
+            (click)="prevPage()" 
+            [disabled]="currentPage === 1"
+          >
+            <i class="fas fa-chevron-left"></i> Anterior
+          </button>
+          
+          <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
+          
+          <button 
+            class="pagination-btn" 
+            (click)="nextPage()" 
+            [disabled]="currentPage === totalPages"
+          >
+            Siguiente <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Customers Tab -->
+    <div *ngIf="activeTab === 'customers'" class="tab-content">
+      <section class="customers-section">
+        <div class="section-header">
+          <h2><i class="fas fa-users"></i> Gestión de Clientes</h2>
+          
+          <div class="search-controls">
+            <div class="search-input-group">
+              <input 
+                type="text" 
+                [(ngModel)]="customerSearchTerm" 
+                placeholder="Buscar clientes..."
+                class="search-input"
+                (keyup.enter)="searchCustomers()"
+              >
+              <button class="search-btn" (click)="searchCustomers()">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="loading" class="loading-container">
+          <div class="spinner"></div>
+          <p>Cargando clientes...</p>
+        </div>
+
+        <div *ngIf="!loading" class="customers-grid">
+          <div *ngFor="let customer of customers" class="customer-card">
+            <div class="customer-header">
+              <h3>{{ customer.name }}</h3>
+              <span class="customer-email">{{ customer.email }}</span>
+            </div>
+            
+            <div class="customer-details">
+              <div class="detail-item" *ngIf="customer.phone">
+                <i class="fas fa-phone"></i>
+                <span>{{ customer.phone }}</span>
+              </div>
+              
+              <div class="detail-item" *ngIf="customer.company_name">
+                <i class="fas fa-building"></i>
+                <span>{{ customer.company_name }}</span>
+              </div>
+            </div>
+            
+            <div class="customer-stats">
+              <div class="stat">
+                <strong>{{ customer.total_invoices }}</strong>
+                <span>Compras</span>
+              </div>
+              <div class="stat">
+                <strong>${{ customer.total_purchased | number:'1.2-2' }}</strong>
+                <span>Total Gastado</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" *ngIf="totalPages > 1">
+          <button 
+            class="pagination-btn" 
+            (click)="prevPage()" 
+            [disabled]="currentPage === 1"
+          >
+            <i class="fas fa-chevron-left"></i> Anterior
+          </button>
+          
+          <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
+          
+          <button 
+            class="pagination-btn" 
+            (click)="nextPage()" 
+            [disabled]="currentPage === totalPages"
+          >
+            Siguiente <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </section>
+    </div>
+
+  </main>
+</div>

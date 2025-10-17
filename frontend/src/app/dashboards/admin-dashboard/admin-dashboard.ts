@@ -1,396 +1,188 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Auth, User } from '../../auth/auth';
-import { NotificationService } from '../../shared/services/notification.service';
-import { NotificationComponent } from '../../shared/components/notification.component';
+import { HttpClient } from '@angular/common/http';
+import { Auth } from '../../auth/auth';
+import { RostobLogoComponent } from '../../shared/components/rostob-logo.component';
 
-interface AdminStats {
-  totalPatients: number;
-  totalDoctors: number;
-  todayAppointments: number;
-  completedAppointments: number;
-  scheduledAppointments: number;
-  cancelledAppointments: number;
-  monthlyRevenue: number;
+interface Book {
+  id: number;
+  title: string;
+  isbn: string;
+  price: number;
+  stock_quantity: number;
+  publication_date: string;
+  description?: string;
+  authors: string;
+  categories: string;
+  publisher_name: string;
 }
 
-interface UserSummary {
-  id: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  phone: string;
-  role_name: string;
-  role_id: number;
-  is_active: boolean;
-  created_at: string;
-  specialty_name?: string;
-}
-
-interface AppointmentSummary {
-  id: string;
-  appointment_date: string;
-  appointment_time: string;
-  patient_name: string;
-  doctor_name: string;
-  specialty_name: string;
+interface Invoice {
+  id: number;
+  invoice_number: string;
+  invoice_date: string;
+  total_amount: number;
   status: string;
-  reason: string;
-}
-
-interface NewUserForm {
-  email: string;
-  firstName: string;
-  lastName: string;
-  phone: string;
-  password: string;
-  roleId: number;
-  specialtyId?: string;
 }
 
 @Component({
   selector: 'app-admin-dashboard',
-  imports: [CommonModule, FormsModule, NotificationComponent],
+  standalone: true,
+  imports: [CommonModule, FormsModule, RostobLogoComponent],
   templateUrl: './admin-dashboard.html',
-  styleUrls: ['./admin-dashboard.css']
+  styleUrl: './admin-dashboard.css'
 })
 export class AdminDashboard implements OnInit {
-  currentUser: User | null = null;
-  stats: AdminStats = {
-    totalPatients: 0,
-    totalDoctors: 0,
-    todayAppointments: 0,
-    completedAppointments: 0,
-    scheduledAppointments: 0,
-    cancelledAppointments: 0,
-    monthlyRevenue: 0
+  activeTab = 'overview';
+  loading = false;
+
+  stats = {
+    total_users: 150,
+    total_books: 1200,
+    total_revenue: 45000.50,
+    total_invoices: 320,
+    low_stock_count: 25,
+    pending_invoices: 12
   };
 
-  // Estados de vista
-  activeView: 'dashboard' | 'users' | 'doctors' | 'patients' | 'appointments' = 'dashboard';
-  
-  // Datos
-  users: UserSummary[] = [];
-  doctors: UserSummary[] = [];
-  patients: UserSummary[] = [];
-  appointments: AppointmentSummary[] = [];
-  specialties: any[] = [];
-  
-  // Estados de carga
-  isLoadingStats = false;
-  isLoadingUsers = false;
-  isLoadingAppointments = false;
-  
-  // Modales
-  showCreateUserModal = false;
-  showEditUserModal = false;
-  selectedUser: UserSummary | null = null;
-  
-  // Formularios
-  newUserForm: NewUserForm = {
-    email: '',
-    firstName: '',
-    lastName: '',
-    phone: '',
-    password: '',
-    roleId: 1
-  };
+  users: any[] = [];
+  userSearchTerm = '';
+  books: any[] = [];
+  bookSearchTerm = '';
 
-  private readonly apiUrl = 'http://localhost:3000/api';
+  private apiUrl = 'http://localhost:3000/api';
 
   constructor(
-    private auth: Auth,
     private http: HttpClient,
-    private notificationService: NotificationService
+    private auth: Auth
   ) {}
 
   ngOnInit() {
-    console.log('🚀 Admin Dashboard inicializado');
-    this.currentUser = this.auth.getCurrentUser();
-    console.log('👤 Usuario actual:', this.currentUser);
-    console.log('🎯 Iniciando carga de datos...');
-    this.loadDashboardData();
+    this.loadStats();
   }
 
-  get userName(): string {
-    return this.currentUser ? `${this.currentUser.firstName} ${this.currentUser.lastName}` : 'Usuario';
+  setActiveTab(tab: string) {
+    this.activeTab = tab;
+    
+    if (tab === 'users' && this.users.length === 0) {
+      this.loadUsers();
+    }
+    if (tab === 'books' && this.books.length === 0) {
+      this.loadBooks();
+    }
   }
 
-  private getAuthHeaders(): HttpHeaders {
-    const token = this.auth.getToken();
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
+  loadStats() {
+    console.log('📊 Stats loaded:', this.stats);
+  }
+
+  loadUsers() {
+    this.loading = true;
+    
+    setTimeout(() => {
+      this.users = [
+        { id: 1, name: 'Juan Pérez', email: 'juan@libreria.com', role: 'customer', is_verified: true, created_at: '2024-01-15' },
+        { id: 2, name: 'Ana García', email: 'ana@libreria.com', role: 'employee', is_verified: true, created_at: '2024-02-20' },
+        { id: 3, name: 'Carlos Admin', email: 'admin@libreria.com', role: 'admin', is_verified: true, created_at: '2024-01-01' }
+      ];
+      this.loading = false;
+    }, 1000);
+  }
+
+  loadBooks() {
+    this.loading = true;
+    
+    this.http.get<any>(`${this.apiUrl}/books?limit=20`, this.getAuthHeaders()).subscribe({
+      next: (response) => {
+        this.books = response.books || [];
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading books:', error);
+        this.books = [];
+        this.loading = false;
+      }
     });
   }
 
-  async loadDashboardData() {
-    await Promise.all([
-      this.loadStats(),
-      this.loadSpecialties()
-    ]);
+  searchUsers() {
+    console.log('Searching users:', this.userSearchTerm);
+    this.loadUsers();
   }
 
-  // Cargar estadísticas principales
-  async loadStats() {
-    this.isLoadingStats = true;
-    try {
-      console.log('🔍 Cargando estadísticas de admin...');
-      const token = this.auth.getToken();
-      console.log('🎫 Token disponible:', token ? 'Sí' : 'No');
-      
-      const headers = this.getAuthHeaders();
-      console.log('📋 Headers:', headers);
-      
-      const response = await this.http.get<AdminStats>(`${this.apiUrl}/admin/stats`, { headers }).toPromise();
-      console.log('📊 Respuesta del servidor:', response);
-      
-      if (response) {
-        this.stats = response;
-        console.log('✅ Estadísticas cargadas:', this.stats);
-      }
-    } catch (error: any) {
-      console.error('❌ Error loading admin stats:', error);
-      console.error('❌ Error details:', error.error);
-      console.error('❌ Status:', error.status);
-      this.notificationService.error('Error', 'No se pudieron cargar las estadísticas: ' + (error.error?.message || error.message));
-    } finally {
-      this.isLoadingStats = false;
+  searchBooks() {
+    console.log('Searching books:', this.bookSearchTerm);
+    this.loadBooks();
+  }
+
+  toggleUserStatus(userId: number, currentStatus: boolean) {
+    const newStatus = !currentStatus;
+    alert(`Usuario ${newStatus ? 'activado' : 'desactivado'} (simulado)`);
+  }
+
+  deleteUser(userId: number, userName: string) {
+    if (confirm(`¿Eliminar usuario "${userName}"?`)) {
+      alert('Usuario eliminado (simulado)');
     }
   }
 
-  // Cargar especialidades
-  async loadSpecialties() {
-    try {
-      const headers = this.getAuthHeaders();
-      const response = await this.http.get<any[]>(`${this.apiUrl}/specialties`, { headers }).toPromise();
-      if (response) {
-        this.specialties = response;
-      }
-    } catch (error) {
-      console.error('Error loading specialties:', error);
+  deleteBook(bookId: number, bookTitle: string) {
+    if (confirm(`¿Eliminar libro "${bookTitle}"?`)) {
+      this.http.delete(`${this.apiUrl}/books/${bookId}`, this.getAuthHeaders()).subscribe({
+        next: () => {
+          alert('Libro eliminado exitosamente');
+          this.loadBooks();
+        },
+        error: (error) => {
+          console.error('Error:', error);
+          alert('Error al eliminar libro');
+        }
+      });
     }
   }
 
-  // Cargar usuarios
-  async loadUsers() {
-    this.isLoadingUsers = true;
-    try {
-      const headers = this.getAuthHeaders();
-      const response = await this.http.get<UserSummary[]>(`${this.apiUrl}/admin/users`, { headers }).toPromise();
-      if (response) {
-        this.users = response;
-        this.doctors = response.filter(user => user.role_id === 2);
-        this.patients = response.filter(user => user.role_id === 3);
-        console.log('✅ Usuarios actualizados:', this.users.length);
-      }
-    } catch (error) {
-      console.error('Error loading users:', error);
-      this.notificationService.error('Error', 'No se pudieron cargar los usuarios');
-    } finally {
-      this.isLoadingUsers = false;
-    }
-  }
-
-  // Cargar citas
-  async loadAppointments() {
-    this.isLoadingAppointments = true;
-    try {
-      const headers = this.getAuthHeaders();
-      const response = await this.http.get<AppointmentSummary[]>(`${this.apiUrl}/admin/appointments`, { headers }).toPromise();
-      if (response) {
-        this.appointments = response;
-      }
-    } catch (error) {
-      console.error('Error loading appointments:', error);
-      this.notificationService.error('Error', 'No se pudieron cargar las citas');
-    } finally {
-      this.isLoadingAppointments = false;
-    }
-  }
-
-  // Cambiar vista activa
-  async setActiveView(view: 'dashboard' | 'users' | 'doctors' | 'patients' | 'appointments') {
-    this.activeView = view;
-    
-    if (view === 'users' || view === 'doctors' || view === 'patients') {
-      await this.loadUsers();
-    } else if (view === 'appointments') {
-      await this.loadAppointments();
-    }
-  }
-
-  // Gestión de usuarios
-  openCreateUserModal() {
-    this.newUserForm = {
-      email: '',
-      firstName: '',
-      lastName: '',
-      phone: '',
-      password: '',
-      roleId: 1
+  getRoleBadge(role: string): string {
+    const badges: { [key: string]: string } = {
+      'admin': 'badge-danger',
+      'employee': 'badge-primary', 
+      'customer': 'badge-success'
     };
-    this.showCreateUserModal = true;
+    return badges[role] || 'badge-secondary';
   }
 
-  closeCreateUserModal() {
-    this.showCreateUserModal = false;
-  }
-
-  async createUser() {
-    if (!this.newUserForm.email || !this.newUserForm.firstName || !this.newUserForm.password) {
-      this.notificationService.warning('Campos Requeridos', 'Por favor complete todos los campos obligatorios');
-      return;
-    }
-
-    try {
-      const headers = this.getAuthHeaders();
-      const response = await this.http.post<any>(`${this.apiUrl}/admin/users`, this.newUserForm, { headers }).toPromise();
-      
-      if (response) {
-        this.notificationService.success('Usuario Creado', 'El usuario ha sido creado exitosamente');
-        this.closeCreateUserModal();
-        this.users = []; // Forzar recarga
-        await this.loadUsers();
-        await this.loadStats(); // Actualizar estadísticas
-      }
-    } catch (error: any) {
-      console.error('Error creating user:', error);
-      const errorMessage = error.error?.message || 'Error al crear el usuario';
-      this.notificationService.error('Error al Crear', errorMessage);
-    }
-  }
-
-  openEditUserModal(user: UserSummary) {
-    this.selectedUser = { ...user };
-    this.showEditUserModal = true;
-  }
-
-  closeEditUserModal() {
-    this.showEditUserModal = false;
-    this.selectedUser = null;
-  }
-
-  async updateUser() {
-    if (!this.selectedUser) return;
-
-    try {
-      const headers = this.getAuthHeaders();
-      
-      // Preparar los datos en el formato que espera el backend
-      const userData = {
-        email: this.selectedUser.email,
-        firstName: this.selectedUser.first_name,
-        lastName: this.selectedUser.last_name,
-        phone: this.selectedUser.phone,
-        roleId: this.selectedUser.role_id
-      };
-
-      console.log('📝 Datos a enviar:', userData);
-      console.log('🎯 URL:', `${this.apiUrl}/admin/users/${this.selectedUser.id}`);
-      
-      const response = await this.http.put<any>(`${this.apiUrl}/admin/users/${this.selectedUser.id}`, userData, { headers }).toPromise();
-      
-      console.log('✅ Respuesta del servidor:', response);
-      
-      if (response) {
-        this.notificationService.success('Usuario Actualizado', 'El usuario ha sido actualizado exitosamente');
-        this.closeEditUserModal();
-        this.users = []; // Forzar recarga
-        await this.loadUsers();
-      }
-    } catch (error: any) {
-      console.error('❌ Error updating user:', error);
-      console.error('❌ Error details:', error.error);
-      const errorMessage = error.error?.message || 'Error al actualizar el usuario';
-      this.notificationService.error('Error al Actualizar', errorMessage);
-    }
-  }
-
-  async toggleUserStatus(user: UserSummary) {
-    console.log('🔄 INICIANDO toggleUserStatus');
-    console.log('Usuario:', user);
-    console.log('Estado actual:', user.is_active);
-    
-    try {
-      const headers = this.getAuthHeaders();
-      const newStatus = !user.is_active;
-      
-      console.log('Nuevo estado:', newStatus);
-      console.log('URL:', `${this.apiUrl}/admin/users/${user.id}/status`);
-      console.log('Headers:', headers);
-      
-      const response = await this.http.patch<any>(`${this.apiUrl}/admin/users/${user.id}/status`, 
-        { is_active: newStatus }, { headers }).toPromise();
-      
-      console.log('✅ Respuesta del servidor:', response);
-      
-      if (response && response.success) {
-        // Actualizar el estado localmente INMEDIATAMENTE
-        user.is_active = newStatus;
-        
-        const action = newStatus ? 'activado' : 'desactivado';
-        this.notificationService.success('Estado Actualizado', `El usuario ha sido ${action} exitosamente`);
-        
-        // Recargar la lista de usuarios para confirmar el cambio en el servidor
-        await this.loadUsers();
-        await this.loadStats();
-      } else {
-        throw new Error('El servidor no confirmó el cambio');
-      }
-    } catch (error: any) {
-      console.error('❌ Error toggling user status:', error);
-      
-      let errorMessage = 'No se pudo cambiar el estado del usuario';
-      if (error.error?.message) {
-        errorMessage = error.error.message;
-      }
-      
-      this.notificationService.error('Error', errorMessage);
-      await this.loadUsers();
-    }
-  }
-
-  // Utilidades
-  formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  }
-
-  formatTime(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-
-  getRoleBadgeClass(roleId: number): string {
-    switch (roleId) {
-      case 1: return 'badge-admin';
-      case 2: return 'badge-doctor';
-      case 3: return 'badge-patient';
-      default: return 'badge-default';
-    }
-  }
-
-  getStatusBadgeClass(status: string): string {
-    switch (status?.toLowerCase()) {
-      case 'confirmed': return 'badge-success';
-      case 'pending': return 'badge-warning';
-      case 'cancelled': return 'badge-danger';
-      case 'completed': return 'badge-info';
-      default: return 'badge-default';
-    }
+  getRoleText(role: string): string {
+    const roles: { [key: string]: string } = {
+      'admin': 'Administrador',
+      'employee': 'Empleado',
+      'customer': 'Cliente'
+    };
+    return roles[role] || role;
   }
 
   logout() {
     this.auth.logout();
+  }
+
+  refreshData() {
+    this.loadStats();
+    if (this.activeTab === 'users') {
+      this.loadUsers();
+    } else if (this.activeTab === 'books') {
+      this.loadBooks();
+    }
+  }
+
+  get currentUser() {
+    return this.auth.getCurrentUser();
+  }
+
+  private getAuthHeaders() {
+    const token = this.auth.getToken();
+    return {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    };
   }
 }

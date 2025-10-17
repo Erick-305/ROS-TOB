@@ -1,8 +1,11 @@
 <div class="register-container">
   <div class="register-card">
     <div class="register-header">
-      <h1>🏥 Registro de Paciente</h1>
-      <p>Crea tu cuenta para acceder a nuestros servicios médicos</p>
+      <div class="logo-container">
+        <rostob-logo size="medium" variant="normal"></rostob-logo>
+      </div>
+      <h1>📚 ROSTOB PUBLICACIONES</h1>
+      <p>Crea tu cuenta para acceder a nuestro catálogo de libros</p>
     </div>
 
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
@@ -10,33 +13,17 @@
       <div class="form-section">
         <h3>📋 Información Personal</h3>
         
-        <div class="form-row">
-          <div class="form-group">
-            <label for="firstName">Nombre *</label>
-            <input
-              type="text"
-              id="firstName"
-              formControlName="firstName"
-              placeholder="Tu nombre"
-              [class.error]="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched"
-            >
-            <div class="error-message" *ngIf="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched">
-              El nombre es requerido
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="lastName">Apellido *</label>
-            <input
-              type="text"
-              id="lastName"
-              formControlName="lastName"
-              placeholder="Tu apellido"
-              [class.error]="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched"
-            >
-            <div class="error-message" *ngIf="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched">
-              El apellido es requerido
-            </div>
+        <div class="form-group">
+          <label for="name">Nombre Completo *</label>
+          <input
+            type="text"
+            id="name"
+            formControlName="name"
+            placeholder="Tu nombre completo"
+            [class.error]="registerForm.get('name')?.invalid && registerForm.get('name')?.touched"
+          >
+          <div class="error-message" *ngIf="registerForm.get('name')?.invalid && registerForm.get('name')?.touched">
+            El nombre es requerido
           </div>
         </div>
 
@@ -194,9 +181,9 @@
               <h4>📧 Próximos pasos:</h4>
               <ol>
                 <li>Revisa tu bandeja de entrada (y spam)</li>
-                <li>Busca el email del "Sistema Hospitalario"</li>
+                <li>Busca el email del "Sistema de Librería"</li>
                 <li>Haz clic en "Verificar mi cuenta"</li>
-                <li>¡Listo para agendar citas!</li>
+                <li>¡Listo para explorar nuestro catálogo!</li>
               </ol>
             </div>
             <div class="redirect-timer">

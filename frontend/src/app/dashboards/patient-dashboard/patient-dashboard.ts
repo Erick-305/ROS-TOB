@@ -83,8 +83,15 @@ export class PatientDashboard implements OnInit {
     private notificationService: NotificationService
   ) {}
 
+  private getRoleName(): string {
+    if (!this.currentUser?.role) return '';
+    return typeof this.currentUser.role === 'string' 
+      ? this.currentUser.role 
+      : this.currentUser.role.name || '';
+  }
+
   ngOnInit() {
-    // Verificar que el usuario sea paciente
+    // Verificar que el usuario sea cliente/customer
     this.currentUser = this.auth.getCurrentUser();
     
     if (!this.currentUser) {
@@ -93,23 +100,25 @@ export class PatientDashboard implements OnInit {
       return;
     }
 
-    // Verificar rol de paciente (role.name = 'patient' o role.id = 3)
-    if (this.currentUser.role.name !== 'patient' && this.currentUser.role.id !== 3) {
-      this.notificationService.error('Acceso Denegado', 'Solo los pacientes pueden acceder a este dashboard');
+    // Verificar rol de cliente/customer
+    const roleName = this.getRoleName().toLowerCase();
+    if (roleName !== 'customer' && roleName !== 'cliente' && roleName !== 'patient') {
+      this.notificationService.error('Acceso Denegado', 'Solo los clientes pueden acceder a este dashboard');
       this.redirectToDashboard();
       return;
     }
 
-    // Si es paciente, cargar datos
+    // Si es cliente, cargar datos
     this.loadInitialData();
   }
 
   private redirectToDashboard() {
     // Redirigir según el rol del usuario
-    if (this.currentUser?.role.name === 'admin' || this.currentUser?.role.id === 1) {
+    const roleName = this.getRoleName().toLowerCase();
+    if (roleName === 'admin' || roleName === 'administrador') {
       this.router.navigate(['/admin-dashboard']);
-    } else if (this.currentUser?.role.name === 'doctor' || this.currentUser?.role.id === 2) {
-      this.router.navigate(['/doctor-dashboard']);
+    } else if (roleName === 'employee' || roleName === 'empleado' || roleName === 'doctor') {
+      this.router.navigate(['/employee-dashboard']);
     } else {
       this.router.navigate(['/login']);
     }
@@ -219,7 +228,7 @@ export class PatientDashboard implements OnInit {
   }
 
   get userName(): string {
-    return this.currentUser ? `${this.currentUser.firstName} ${this.currentUser.lastName}` : 'Usuario';
+    return this.currentUser ? this.currentUser.name || 'Usuario' : 'Usuario';
   }
 
   // Formatear fecha para mostrar

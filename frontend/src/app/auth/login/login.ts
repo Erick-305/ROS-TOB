@@ -3,12 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { Auth, LoginRequest } from '../auth';
+import { RostobLogoComponent } from '../../shared/components/rostob-logo.component';
 
 @Component({
   selector: 'app-login',
-  imports: [CommonModule, FormsModule, RouterModule],
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterModule, RostobLogoComponent],
   templateUrl: './login.html',
-  styleUrls: ['./login.css']
+  styleUrl: './login.css'
 })
 export class Login {
   loginData: LoginRequest = {
@@ -41,8 +43,17 @@ export class Login {
     this.authService.login(this.loginData).subscribe({
       next: (response) => {
         this.loading = false;
-        // Redirigir según el rol del usuario
-        this.redirectBasedOnRole(response.user.role.name);
+        // Verificar que la respuesta tiene la estructura esperada
+        if (response && response.user) {
+          // El rol viene como string directamente desde el backend
+          const roleName = typeof response.user.role === 'string' 
+            ? response.user.role 
+            : response.user.role?.name || 'customer';
+          this.redirectBasedOnRole(roleName);
+        } else {
+          // Si no hay información de rol, redirigir al dashboard por defecto
+          this.router.navigate(['/dashboard']);
+        }
       },
       error: (error) => {
         this.loading = false;
@@ -53,20 +64,22 @@ export class Login {
   }
 
   private redirectBasedOnRole(roleName: string) {
+    console.log('Redirigiendo usuario con rol:', roleName);
     switch (roleName.toLowerCase()) {
-      case 'patient':
-      case 'paciente':
-        this.router.navigate(['/patient-dashboard']);
+      case 'customer':
+      case 'cliente':
+        this.router.navigate(['/customer-dashboard']);
         break;
-      case 'doctor':
-      case 'médico':
-        this.router.navigate(['/doctor-dashboard']);
+      case 'employee':
+      case 'empleado':
+        this.router.navigate(['/employee-dashboard']);
         break;
       case 'admin':
       case 'administrador':
         this.router.navigate(['/admin-dashboard']);
         break;
       default:
+        console.log('Rol no reconocido, redirigiendo a dashboard genérico');
         this.router.navigate(['/dashboard']);
     }
   }

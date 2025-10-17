@@ -22,7 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 // Rutas básicas
 app.get('/', (req, res) => {
     res.json({
-        message: 'Hospital Management System API',
+        message: 'Bookstore Management System API',
         version: '1.0.0',
         status: 'running'
     });
@@ -47,14 +47,12 @@ app.get('/api/test', (req, res) => {
 
 // Importar y usar rutas
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/appointments', require('./routes/appointments'));
-app.use('/api/medical-records', require('./routes/medical-records'));
-app.use('/api/admin', require('./routes/admin'));
-app.use('/api/specialties', require('./routes/specialties'));
-// app.use('/api/users', require('./routes/users'));
-// app.use('/api/appointments', require('./routes/appointments'));
-// app.use('/api/patients', require('./routes/patients'));
-// app.use('/api/doctors', require('./routes/doctors'));
+app.use('/api/books', require('./routes/books'));
+app.use('/api/invoices', require('./routes/invoices'));
+app.use('/api/categories', require('./routes/categories'));
+app.use('/api/authors', require('./routes/authors'));
+app.use('/api/customers', require('./routes/customers'));
+app.use('/api/publishers', require('./routes/publishers'));
 
 // Manejo de errores
 app.use((err, req, res, next) => {

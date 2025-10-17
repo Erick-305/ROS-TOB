@@ -1,0 +1,220 @@
+<div class="customer-dashboard">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <div class="user-info">
+        <div class="brand-section">
+          <rostob-logo size="small" variant="header"></rostob-logo>
+          <h1>ROSTOB PUBLICACIONES</h1>
+        </div>
+        <div class="user-details">
+          <span class="welcome-msg">Bienvenido, {{ currentUser?.name || 'Cliente' }}</span>
+          <button class="logout-btn" (click)="logout()">
+            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+          </button>
+        </div>
+      </div>
+      <div class="cart-info" (click)="toggleCart()">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="cart-count" *ngIf="getCartItemsCount() > 0">{{ getCartItemsCount() }}</span>
+        <span class="cart-text">Carrito</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Search and Filters -->
+    <section class="search-section">
+      <div class="search-container">
+        <div class="search-input-group">
+          <input 
+            type="text" 
+            [(ngModel)]="searchTerm" 
+            placeholder="Buscar libros por título, autor o ISBN..."
+            class="search-input"
+            (keyup.enter)="onSearch()"
+          >
+          <button class="search-btn" (click)="onSearch()">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+        
+        <div class="filters">
+          <select [(ngModel)]="selectedCategory" (change)="onCategoryChange()" class="category-select">
+            <option value="">Todas las categorías</option>
+            <option *ngFor="let category of categories" [value]="category.name">
+              {{ category.name }}
+            </option>
+          </select>
+          
+          <button class="clear-filters-btn" (click)="clearFilters()">
+            <i class="fas fa-times"></i> Limpiar
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Books Grid -->
+    <section class="books-section">
+      <div class="section-header">
+        <h2>📖 Catálogo de Libros</h2>
+        <div class="pagination-info">
+          Página {{ currentPage }} de {{ totalPages }}
+        </div>
+      </div>
+
+      <div *ngIf="loading" class="loading-container">
+        <div class="spinner"></div>
+        <p>Cargando libros...</p>
+      </div>
+
+      <div *ngIf="!loading" class="books-grid">
+        <div *ngFor="let book of books" class="book-card">
+          <div class="book-header">
+            <h3 class="book-title">{{ book.title }}</h3>
+            <div class="book-authors">{{ book.authors }}</div>
+          </div>
+          
+          <div class="book-details">
+            <div class="book-info">
+              <span class="publisher">📚 {{ book.publisher_name }}</span>
+              <span class="categories">🏷️ {{ book.categories }}</span>
+              <span class="isbn">📋 {{ book.isbn }}</span>
+            </div>
+            
+            <div class="book-description" *ngIf="book.description">
+              {{ book.description | slice:0:150 }}{{ book.description && book.description.length > 150 ? '...' : '' }}
+            </div>
+          </div>
+          
+          <div class="book-footer">
+            <div class="price-stock">
+              <span class="price">${{ book.price | number:'1.2-2' }}</span>
+              <span class="stock" [class.low-stock]="book.stock_quantity < 5">
+                <i class="fas fa-boxes"></i> {{ book.stock_quantity }} disponibles
+              </span>
+            </div>
+            
+            <button 
+              class="add-to-cart-btn" 
+              (click)="addToCart(book)"
+              [disabled]="book.stock_quantity === 0"
+            >
+              <i class="fas fa-cart-plus"></i>
+              {{ book.stock_quantity === 0 ? 'Agotado' : 'Agregar' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" *ngIf="totalPages > 1">
+        <button 
+          class="pagination-btn" 
+          (click)="prevPage()" 
+          [disabled]="currentPage === 1"
+        >
+          <i class="fas fa-chevron-left"></i> Anterior
+        </button>
+        
+        <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
+        
+        <button 
+          class="pagination-btn" 
+          (click)="nextPage()" 
+          [disabled]="currentPage === totalPages"
+        >
+          Siguiente <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </section>
+
+    <!-- Recent Purchases -->
+    <section class="purchases-section" *ngIf="recentInvoices.length > 0">
+      <div class="section-header">
+        <h2>🧾 Mis Últimas Compras</h2>
+      </div>
+      
+      <div class="invoices-list">
+        <div *ngFor="let invoice of recentInvoices" class="invoice-card">
+          <div class="invoice-header">
+            <span class="invoice-number">{{ invoice.invoice_number }}</span>
+            <span class="invoice-date">{{ invoice.invoice_date | date:'short' }}</span>
+          </div>
+          <div class="invoice-footer">
+            <span class="invoice-total">${{ invoice.total_amount | number:'1.2-2' }}</span>
+            <span class="invoice-status" [class]="getStatusBadge(invoice.status)">
+              {{ getStatusText(invoice.status) }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Shopping Cart Sidebar -->
+  <div class="cart-sidebar" [class.open]="showCart">
+    <div class="cart-header">
+      <h3><i class="fas fa-shopping-cart"></i> Carrito de Compras</h3>
+      <button class="close-cart" (click)="toggleCart()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="cart-content">
+      <div *ngIf="cart.length === 0" class="empty-cart">
+        <i class="fas fa-shopping-cart empty-icon"></i>
+        <p>Tu carrito está vacío</p>
+        <small>Agrega algunos libros para comenzar</small>
+      </div>
+      
+      <div *ngIf="cart.length > 0">
+        <div class="cart-items">
+          <div *ngFor="let item of cart; let i = index" class="cart-item">
+            <div class="item-info">
+              <h4 class="item-title">{{ item.title }}</h4>
+              <div class="item-price">${{ item.price | number:'1.2-2' }} c/u</div>
+            </div>
+            
+            <div class="item-controls">
+              <div class="quantity-controls">
+                <button 
+                  class="qty-btn" 
+                  (click)="updateQuantity(i, item.quantity - 1)"
+                >-</button>
+                <span class="quantity">{{ item.quantity }}</span>
+                <button 
+                  class="qty-btn" 
+                  (click)="updateQuantity(i, item.quantity + 1)"
+                  [disabled]="item.quantity >= item.max_quantity"
+                >+</button>
+              </div>
+              
+              <button class="remove-btn" (click)="removeFromCart(i)">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+            
+            <div class="item-total">
+              ${{ (item.price * item.quantity) | number:'1.2-2' }}
+            </div>
+          </div>
+        </div>
+        
+        <div class="cart-footer">
+          <div class="cart-total">
+            <strong>Total: ${{ getCartTotal() | number:'1.2-2' }}</strong>
+          </div>
+          
+          <button class="checkout-btn" (click)="checkout()">
+            <i class="fas fa-credit-card"></i> Proceder al Pago
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay for cart -->
+  <div class="cart-overlay" [class.active]="showCart" (click)="toggleCart()"></div>
+</div>

@@ -2,9 +2,9 @@
   <!-- Header común para todos los roles -->
   <header class="dashboard-header">
     <div class="user-info">
-      <h1>Sistema Hospitalario</h1>
+      <h1>📚 Sistema de Librería</h1>
       <div class="user-details">
-        <span class="user-name">{{ userName }}</span>
+        <span class="user-name">{{ currentUserName }}</span>
         <span class="user-role">({{ userRole }})</span>
         <button class="logout-btn" (click)="logout()">Cerrar Sesión</button>
       </div>
@@ -14,52 +14,55 @@
   <!-- Dashboard para Administrador -->
   <div *ngIf="isAdmin" class="admin-dashboard">
     <div class="welcome-card admin">
-      <h2>🏥 Bienvenido al Panel de Administrador</h2>
-      <p>Hola <strong>{{ userName }}</strong>, tienes acceso completo al sistema hospitalario.</p>
+      <h2>📚 Bienvenido al Panel de Administrador</h2>
+      <p>Hola <strong>{{ currentUserName }}</strong>, tienes acceso completo al sistema de librería.</p>
       <div class="admin-features">
         <h3>Funciones disponibles:</h3>
         <ul>
-          <li>✅ Gestión de usuarios (médicos, pacientes, administradores)</li>
-          <li>✅ Supervisión de citas médicas</li>
-          <li>✅ Reportes y estadísticas del hospital</li>
+          <li>✅ Gestión de usuarios (empleados, clientes, administradores)</li>
+          <li>✅ Administración completa del catálogo de libros</li>
+          <li>✅ Reportes y estadísticas de ventas</li>
           <li>✅ Configuración del sistema</li>
-          <li>✅ Administración de especialidades médicas</li>
+          <li>✅ Gestión de proveedores y editoriales</li>
+          <li>✅ Control de inventario y facturación</li>
         </ul>
       </div>
     </div>
   </div>
 
-  <!-- Dashboard para Doctor -->
-  <div *ngIf="isDoctor" class="doctor-dashboard">
-    <div class="welcome-card doctor">
-      <h2>👨‍⚕️ Bienvenido al Panel de Médico</h2>
-      <p>Hola <strong>Dr. {{ userName }}</strong>, aquí puedes gestionar tus pacientes y citas.</p>
-      <div class="doctor-features">
+  <!-- Dashboard para Empleado -->
+  <div *ngIf="isEmployee" class="employee-dashboard">
+    <div class="welcome-card employee">
+      <h2>�‍💼 Bienvenido al Panel de Empleado</h2>
+      <p>Hola <strong>{{ currentUserName }}</strong>, aquí puedes gestionar las ventas y atención al cliente.</p>
+      <div class="employee-features">
         <h3>Funciones disponibles:</h3>
         <ul>
-          <li>✅ Ver lista de pacientes asignados</li>
-          <li>✅ Gestionar citas médicas programadas</li>
-          <li>✅ Acceder a historiales médicos</li>
-          <li>✅ Crear diagnósticos y recetas</li>
-          <li>✅ Actualizar disponibilidad de horarios</li>
+          <li>✅ Procesar ventas y facturación</li>
+          <li>✅ Gestionar inventario de libros</li>
+          <li>✅ Atención a clientes y consultas</li>
+          <li>✅ Registrar nuevos clientes</li>
+          <li>✅ Consultar disponibilidad de libros</li>
+          <li>✅ Generar reportes de ventas</li>
         </ul>
       </div>
     </div>
   </div>
 
-  <!-- Dashboard para Paciente -->
-  <div *ngIf="isPatient" class="patient-dashboard">
-    <div class="welcome-card patient">
-      <h2>🩺 Bienvenido al Panel de Paciente</h2>
-      <p>Hola <strong>{{ userName }}</strong>, aquí puedes gestionar tus citas y consultar tu información médica.</p>
-      <div class="patient-features">
+  <!-- Dashboard para Cliente -->
+  <div *ngIf="isCustomer" class="customer-dashboard">
+    <div class="welcome-card customer">
+      <h2>📖 Bienvenido al Panel de Cliente</h2>
+      <p>Hola <strong>{{ currentUserName }}</strong>, aquí puedes explorar nuestro catálogo y gestionar tus compras.</p>
+      <div class="customer-features">
         <h3>Funciones disponibles:</h3>
         <ul>
-          <li>✅ Solicitar citas médicas</li>
-          <li>✅ Ver citas programadas</li>
-          <li>✅ Consultar historial médico personal</li>
-          <li>✅ Ver resultados de exámenes</li>
+          <li>✅ Explorar catálogo de libros</li>
+          <li>✅ Búsqueda avanzada por categorías y autores</li>
+          <li>✅ Ver historial de compras y facturas</li>
+          <li>✅ Gestionar carrito de compras</li>
           <li>✅ Actualizar información personal</li>
+          <li>✅ Revisar estado de pedidos</li>
         </ul>
       </div>
     </div>
@@ -69,10 +72,9 @@
   <div class="debug-info">
     <h4>Información de depuración:</h4>
     <p><strong>Email:</strong> {{ currentUser?.email }}</p>
-    <p><strong>Rol ID:</strong> {{ currentUser?.role?.id }}</p>
-    <p><strong>Rol:</strong> {{ currentUser?.role?.name }}</p>
+    <p><strong>Rol:</strong> {{ userRole }}</p>
     <p><strong>Es Admin:</strong> {{ isAdmin ? 'Sí' : 'No' }}</p>
-    <p><strong>Es Doctor:</strong> {{ isDoctor ? 'Sí' : 'No' }}</p>
-    <p><strong>Es Paciente:</strong> {{ isPatient ? 'Sí' : 'No' }}</p>
+    <p><strong>Es Empleado:</strong> {{ isEmployee ? 'Sí' : 'No' }}</p>
+    <p><strong>Es Cliente:</strong> {{ isCustomer ? 'Sí' : 'No' }}</p>
   </div>
 </div>

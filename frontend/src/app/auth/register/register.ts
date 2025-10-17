@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractContro
 import { RouterModule, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Auth } from '../auth';
+import { RostobLogoComponent } from '../../shared/components/rostob-logo.component';
 
 // Validador personalizado para confirmar contraseña
 function passwordMatchValidator(control: AbstractControl): {[key: string]: any} | null {
@@ -18,7 +19,7 @@ function passwordMatchValidator(control: AbstractControl): {[key: string]: any} 
 
 @Component({
   selector: 'app-register',
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, RostobLogoComponent],
   templateUrl: './register.html',
   styleUrl: './register.css'
 })
@@ -53,10 +54,10 @@ export class Register implements OnInit {
 
   private createForm() {
     this.registerForm = this.fb.group({
-      firstName: ['', [Validators.required, Validators.minLength(2)]],
-      lastName: ['', [Validators.required, Validators.minLength(2)]],
+      name: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
       phone: [''],
+      address: [''],
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', [Validators.required]],
       acceptTerms: [false, [Validators.requiredTrue]]

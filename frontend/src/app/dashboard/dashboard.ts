@@ -21,20 +21,23 @@ export class Dashboard implements OnInit {
     return this.auth.isAdmin();
   }
 
-  get isDoctor(): boolean {
-    return this.auth.isDoctor();
+  get isEmployee(): boolean {
+    return this.auth.isEmployee();
   }
 
-  get isPatient(): boolean {
-    return this.auth.isPatient();
+  get isCustomer(): boolean {
+    return this.auth.isCustomer();
   }
 
-  get userName(): string {
-    return this.currentUser ? `${this.currentUser.firstName} ${this.currentUser.lastName}` : 'Usuario';
+  get currentUserName(): string {
+    return this.currentUser ? this.currentUser.name || 'Usuario' : 'Usuario';
   }
 
   get userRole(): string {
-    return this.currentUser?.role.name || 'Sin rol';
+    if (!this.currentUser?.role) return 'Sin rol';
+    return typeof this.currentUser.role === 'string' 
+      ? this.currentUser.role 
+      : this.currentUser.role.name || 'Sin rol';
   }
 
   logout() {

@@ -18,7 +18,7 @@ COPY . .
 
 # Dar permisos de ejecución al script de espera
 COPY wait-for-it.sh /wait-for-it.sh
-RUN chmod +x /wait-for-it.sh
+RUN sed -i 's/\r$//' /wait-for-it.sh && chmod +x /wait-for-it.sh
 
 # Exponer puerto
 EXPOSE 3000

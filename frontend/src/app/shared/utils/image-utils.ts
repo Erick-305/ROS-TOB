@@ -85,14 +85,19 @@ export class ImageUtils {
   }
 
   // Generar placeholder con iniciales
-  static generateInitialsAvatar(firstName: string, lastName: string, size: number = 100): string {
-    const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+  static generateInitialsAvatar(name: string, size: number = 100): string {
+    // Extraer las iniciales del nombre completo
+    const nameParts = name.trim().split(' ');
+    const initials = nameParts.length >= 2 
+      ? (nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)).toUpperCase()
+      : nameParts[0].charAt(0).toUpperCase();
+    
     const colors = [
       '#667eea', '#764ba2', '#48bb78', '#ed8936', 
       '#f56565', '#4299e1', '#9f7aea', '#38b2ac'
     ];
     
-    const colorIndex = (firstName.charCodeAt(0) + lastName.charCodeAt(0)) % colors.length;
+    const colorIndex = name.charCodeAt(0) % colors.length;
     const backgroundColor = colors[colorIndex];
 
     const svg = `

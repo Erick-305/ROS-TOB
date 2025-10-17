@@ -158,7 +158,7 @@ export class DoctorDashboard implements OnInit {
   }
 
   get userName(): string {
-    return this.currentUser ? `${this.currentUser.firstName} ${this.currentUser.lastName}` : 'Usuario';
+    return this.currentUser ? this.currentUser.name || 'Usuario' : 'Usuario';
   }
 
   get filteredAppointments(): DoctorAppointment[] {

@@ -1,0 +1,31 @@
+/* ROSTOB PUBLICACIONES - Logo Styles */
+
+.rostob-logo-fallback {
+  width: 120px;
+  height: auto;
+  max-height: 80px;
+  background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2aWV3Qm94PSIwIDAgNDAwIDE2MCI+CiAgPGRlZnM+CiAgICA8c3R5bGU+CiAgICAgIC5sb2dvLXRleHQtbWFpbiB7IAogICAgICAgIGZvbnQtZmFtaWx5OiAnVGltZXMgTmV3IFJvbWFuJywgc2VyaWY7IAogICAgICAgIGZvbnQtd2VpZ2h0OiBib2xkOyAKICAgICAgICBmb250LXNpemU6IDQ4cHg7IAogICAgICAgIGZpbGw6ICMxYTFhMWE7IAogICAgICB9CiAgICAgIC5sb2dvLXRleHQtc3ViIHsgCiAgICAgICAgZm9udC1mYW1pbHk6ICdBcmlhbCcsIHNhbnMtc2VyaWY7IAogICAgICAgIGZvbnQtc2l6ZTogMTZweDsgCiAgICAgICAgZmlsbDogIzJjMmMyYzsKICAgICAgICBsZXR0ZXItc3BhY2luZzogMnB4OwogICAgICB9CiAgICAgIC5kZWNvcmF0aXZlLWVsZW1lbnQgewogICAgICAgIHN0cm9rZTogIzFhMWExYTsKICAgICAgICBzdHJva2Utd2lkdGg6IDM7CiAgICAgICAgZmlsbDogbm9uZTsKICAgICAgfQogICAgPC9zdHlsZT4KICA8L2RlZnM+CiAgCiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjAsMjUpIj4KICAgIDxwYXRoIGQ9Ik0xNSw1IEwxNSw4MCBNMTUsNSBMNDUsNSBRNjAsNSA2MCwyNSBRNjAsNDUgNDUsNDUgTDE1LDQ1IE00NSw0NSBMNjAsODAiIAogICAgICAgICAgc3Ryb2tlPSIjMWExYTFhIiBzdHJva2Utd2lkdGg9IjYiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgPGNpcmNsZSBjeD0iMzUiIGN5PSIyNSIgcj0iMiIgZmlsbD0iIzFhMWExYSIvPgogICAgPHBhdGggZD0iTTIwLDE1IFEzMCwxMiA0MCwxNSIgc3Ryb2tlPSIjMWExYTFhIiBzdHJva2Utd2lkdGg9IjEuNSIgZmlsbD0ibm9uZSIvPgogICAgPHBhdGggZD0iTTEwLDEwIFEyNSwwIDQwLDEwIiBzdHJva2U9IiMxYTFhMWEiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIgb3BhY2l0eT0iMC42Ii8+CiAgICA8cGF0aCBkPSJNMTAsNzAgUTQwLDg1IDcwLDcwIiBzdHJva2U9IiMxYTFhMWEiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIgb3BhY2l0eT0iMC42Ii8+CiAgPC9nPgogIAogIDx0ZXh0IHg9IjEwMCIgeT0iNjUiIGNsYXNzPSJsb2dvLXRleHQtbWFpbiI+Uk9TLVRPQJQ8L3RleHQ+CiAgCiAgPHRleHQgeD0iMTAwIiB5PSI5MCIgY2xhc3M9ImxvZ28tdGV4dC1zdWIiPlBVQkxJQ0FDSU9ORVM8L3RleHQ+CiAgCiAgPHBhdGggZD0iTTEwMCwxMDAgUTE1MCwxMTAgMjAwLDEwMCBRMjUwLDk1IDMwMCwxMDAiIGNsYXNzPSJkZWNvcmF0aXZlLWVsZW1lbnQiIHN0cm9rZS13aWR0aD0iMiIvPgogIAogIDxjaXJjbGUgY3g9IjMyMCIgY3k9IjY1IiByPSIzIiBmaWxsPSIjMWExYTFhIiBvcGFjaXR5PSIwLjciLz4KICA8Y2lyY2xlIGN4PSIzMzAiIGN5PSI3NSIgcj0iMS41IiBmaWxsPSIjMWExYTFhIiBvcGFjaXR5PSIwLjUiLz4KICA8cGF0aCBkPSJNMzEwLDQ1IFEzMjAsNDAgMzMwLDQ1IiBzdHJva2U9IiMxYTFhMWEiIHN0cm9rZS13aWR0aD0iMSIgZmlsbD0ibm9uZSIgb3BhY2l0eT0iMC42Ii8+Cjwvc3ZnPg==');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.95;
+  filter: drop-shadow(2px 2px 6px rgba(0, 0, 0, 0.15));
+  object-fit: contain;
+}
+
+/* Adaptaciones para diferentes contextos */
+.header-logo.rostob-logo-fallback {
+  width: 60px;
+  height: auto;
+  max-height: 40px;
+  filter: brightness(0) invert(1) drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.rostob-logo.rostob-logo-fallback {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}

@@ -6,12 +6,14 @@ import { Router } from '@angular/router';
 export interface User {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  role: {
-    id: number;
+  name: string;
+  phone?: string;
+  address?: string;
+  role: string | {
+    id?: number;
     name: string;
   };
+  is_verified?: boolean;
 }
 
 export interface LoginRequest {
@@ -27,10 +29,10 @@ export interface LoginResponse {
 export interface RegisterRequest {
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
+  name: string;
   phone?: string;
-  roleId: number;
+  address?: string;
+  role?: string;
 }
 
 @Injectable({
@@ -107,15 +109,21 @@ export class Auth {
 
   hasRole(roleNames: string[]): boolean {
     const user = this.getCurrentUser();
-    return user ? roleNames.includes(user.role.name) : false;
+    if (!user?.role) return false;
+    
+    const userRoleName = typeof user.role === 'string' 
+      ? user.role 
+      : user.role.name || '';
+    
+    return roleNames.some(role => role.toLowerCase() === userRoleName.toLowerCase());
   }
 
-  isPatient(): boolean {
-    return this.hasRole(['patient', 'Paciente']);
+  isCustomer(): boolean {
+    return this.hasRole(['customer', 'Cliente']);
   }
 
-  isDoctor(): boolean {
-    return this.hasRole(['doctor', 'Doctor', 'Médico']);
+  isEmployee(): boolean {
+    return this.hasRole(['employee', 'Empleado']);
   }
 
   isAdmin(): boolean {
